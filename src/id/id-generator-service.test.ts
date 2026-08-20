@@ -28,13 +28,19 @@ describe('IdGenerotorService', () => {
 	});
 	const id = new IdGeneratorService(form, db);
 	describe('generateBaseId', () => {
-		it('should return ID: 37951106000', () => {
-			const arr = id.generateBaseId(
-				id.getInitialsCode(form.firstName, form.lastName),
-				id.getDobCodes(form.dateOfBirth),
-			);
-			expect(arr).toBe('37951106000');
+		const _id = id.generateBaseId(
+			id.getInitialsCode(form.firstName, form.lastName),
+			id.getDobCodes(form.dateOfBirth),
+		);
+
+		it('should return baseID: 37951106', () => {
+			expect(_id).toBe('37951106');
 		});
 	});
-	describe('createEmployeeId', () => {});
+	describe('createEmployeeId', () => {
+		it('should return full ID: 37951106003', () => {
+			const _id = id.createEmployeeId();
+			expect(_id).toBe('37951106003');
+		});
+	});
 });

@@ -16,16 +16,40 @@ export class IdGeneratorService {
 	) {}
 	private baseId: string = '';
 	private collisionSequence: string = '000';
-	private collisionCoutner: number = 0;
+	private collisionCounter: number = 0;
 
 	public createEmployeeId() {
+		this.baseId = this.generateBaseId(
+			this.getInitialsCode(this.form.firstName, this.form.lastName),
+			this.getDobCodes(this.form.dateOfBirth),
+		);
 		const ids: string[] = this.db.query();
+		const incrementColSeq = () => {
+			this.collisionCounter++;
+			switch (String(this.collisionCounter).length) {
+				case 1:
+					this.collisionSequence = '00' + String(this.collisionCounter);
+					break;
+				case 2:
+					this.collisionSequence = '0' + String(this.collisionCounter);
+					break;
+				default:
+					this.collisionSequence = String(this.collisionCounter);
+			}
+		};
+		for (const id of ids) {
+			if (id === this.baseId + this.collisionSequence) {
+				incrementColSeq();
+			} else {
+				break;
+			}
+		}
+		return this.baseId + this.collisionSequence;
 	}
-
 	public generateBaseId(initialsCode: ZeroNineArray, getDobCodes: ZeroNineArray[]) {
 		const codes = [initialsCode, ...getDobCodes];
 		codes.forEach((code) => zeroNineArraySchema.parse(code));
-		const id = codes.join().replaceAll(',', '') + '000'; // increments control sequence from 00 until no clashes are found
+		const id = codes.join().replaceAll(',', ''); // increments control sequence from 00 until no clashes are found
 		return id;
 	}
 
