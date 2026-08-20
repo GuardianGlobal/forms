@@ -4,6 +4,7 @@
 	"description": "the forms repository for https://portal.myguardiancares.com",
 	"main": "index.js",
 	"scripts": {
+		"req": "npx tsx watch --env-file=.env ./src/request.ts",
 		"dev": "npx tsx watch --env-file=.env ./src/app.ts",
 		"test": "vitest",
 		"test:watch": "vitest watch"
@@ -21,7 +22,9 @@
 	},
 	"homepage": "https://github.com/GuardianGlobal/forms#readme",
 	"dependencies": {
+		"chalk": "^6.0.0",
 		"express": "^5.2.1",
+		"pg": "^8.23.0",
 		"prisma": "^7.9.1",
 		"zod": "^4.4.3"
 	},
