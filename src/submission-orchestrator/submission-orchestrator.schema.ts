@@ -36,7 +36,7 @@ export const employeeFormSubmissionSchema = z.object({
 	preferredName: varchar50NullableSchema,
 	employementStatus: employmentStatusSchema,
 	gender: genderAbrevSchema,
-	dateOfBirth: z.coerce.date(),
+	dateOfBirth: z.coerce.string(),
 	socialSecurityNumber: ssnSchema,
 	email: z.email(),
 	phoneNumber: phoneNumerSchema,
@@ -48,4 +48,4 @@ export const employeeFormSubmissionSchema = z.object({
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date(),
 });
-export type EmployeeFormSubmission = z.infer<typeof employeeFormSubmissionSchema>;
+export type EmployeeFormSubmission = z.output<typeof employeeFormSubmissionSchema>;

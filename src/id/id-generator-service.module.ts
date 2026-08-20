@@ -7,11 +7,12 @@ import {
 	stringCharacterSchema,
 	dateCodeSchema,
 } from '#src/id/id-generator-service.schema.js';
+type IdDatabaseClient = Pick<DatabaseClient, 'query'>;
 
 export class IdGeneratorService {
 	constructor(
 		private readonly form: EmployeeFormSubmission,
-		private readonly db: DatabaseClient,
+		private readonly db: IdDatabaseClient,
 	) {}
 	private baseId: string = '';
 	private collisionSequence: string = '000';
@@ -55,7 +56,7 @@ export class IdGeneratorService {
 		const roll = this.numRoll(firstNameCode);
 		return this.cycleNumRoll(roll, lastNameCode);
 	}
-	public getDobCodes(dob: Date) {
+	public getDobCodes(dob: string) {
 		const dateStrings = dateCodeSchema.parse(dob);
 		return [
 			this.numRoll(dateStrings.year),

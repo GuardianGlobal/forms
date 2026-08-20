@@ -1,11 +1,13 @@
 /// <reference types="vitest/globals" />
 //describe, it, expect
 import { IdGeneratorService } from './id-generator-service.module.js';
-import { DatabaseClient } from '#src/db/database-client.module.js';
 import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import type { DatabaseClient } from '#src/db/database-client.module.js';
 
 describe('IdGenerotorService', () => {
-	const db = new DatabaseClient('');
+	const db: Pick<DatabaseClient, 'query'> = {
+		query: vi.fn(() => ['37951106000', '37951106001', '37951106002', '37951106004']),
+	};
 	const form = employeeFormSubmissionSchema.parse({
 		firstName: 'Aimee',
 		lastName: 'Hesser',
@@ -26,11 +28,13 @@ describe('IdGenerotorService', () => {
 	});
 	const id = new IdGeneratorService(form, db);
 	describe('generateBaseId', () => {
-		const arr = id.generateBaseId(
-			id.getInitialsCode(form.firstName, form.lastName),
-			id.getDobCodes(form.dateOfBirth),
-		);
-		console.log(arr);
-		expect(arr).toStrictEqual(['']);
+		it('should return ID: 37951106000', () => {
+			const arr = id.generateBaseId(
+				id.getInitialsCode(form.firstName, form.lastName),
+				id.getDobCodes(form.dateOfBirth),
+			);
+			expect(arr).toBe('37951106000');
+		});
 	});
+	describe('createEmployeeId', () => {});
 });

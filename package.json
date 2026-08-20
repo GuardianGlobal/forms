@@ -6,6 +6,7 @@
 	"scripts": {
 		"req": "npx tsx watch --env-file=.env ./src/request.ts",
 		"dev": "npx tsx watch --env-file=.env ./src/app.ts",
+		"compile": "npx tsc --noEmit",
 		"test": "vitest",
 		"test:watch": "vitest watch"
 	},
