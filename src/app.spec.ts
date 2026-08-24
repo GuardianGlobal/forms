@@ -39,7 +39,7 @@ describe('/employees', () => {
 		const employeeId: string = '37951106001';
 		await pool.query(
 			`
-            DELETE FROM employee WHERE employee_id = $1;
+            DELETE FROM employees WHERE employee_id = $1;
         `,
 			[employeeId],
 		);

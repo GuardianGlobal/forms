@@ -27,7 +27,7 @@ export class AgencyPoolManager {
 		const pool = new Pool({
 			...config,
 			max: 2,
-			idleTimeoutMillis: 30_000,
+			idleTimeoutMillis: 5_000,
 			connectionTimeoutMillis: 5_000,
 		});
 

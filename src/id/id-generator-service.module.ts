@@ -14,7 +14,7 @@ export class IdGeneratorService {
 		private readonly formsRepo: EmployeeFormsRepository,
 	) {}
 	private baseId: string = '';
-	private collisionSequence: string = '001';
+	private collisionSequence: string = '000';
 	private collisionCounter: number = 0;
 
 	public createEmployeeId = async () => {
