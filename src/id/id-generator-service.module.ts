@@ -1,5 +1,5 @@
 import { EmployeeFormSubmission } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
-import { DatabaseClient } from '#src/db/database-client.module.js';
+import { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
 import type { ZeroNineArray } from '#src/id/id-generator-service.schema.js';
 import {
 	zeroNineNumberSchema,
@@ -7,23 +7,22 @@ import {
 	stringCharacterSchema,
 	dateCodeSchema,
 } from '#src/id/id-generator-service.schema.js';
-type IdDatabaseClient = Pick<DatabaseClient, 'query'>;
 
 export class IdGeneratorService {
 	constructor(
 		private readonly form: EmployeeFormSubmission,
-		private readonly db: IdDatabaseClient,
+		private readonly formsRepo: EmployeeFormsRepository,
 	) {}
 	private baseId: string = '';
-	private collisionSequence: string = '000';
+	private collisionSequence: string = '001';
 	private collisionCounter: number = 0;
 
-	public createEmployeeId() {
+	public createEmployeeId = async () => {
 		this.baseId = this.generateBaseId(
 			this.getInitialsCode(this.form.firstName, this.form.lastName),
 			this.getDobCodes(this.form.dateOfBirth),
 		);
-		const ids: string[] = this.db.query();
+		const ids: string[] = await this.formsRepo.getEmployeeIds(this.baseId);
 		const incrementColSeq = () => {
 			this.collisionCounter++;
 			switch (String(this.collisionCounter).length) {
@@ -45,11 +44,14 @@ export class IdGeneratorService {
 			}
 		}
 		return this.baseId + this.collisionSequence;
-	}
-	public generateBaseId(initialsCode: ZeroNineArray, getDobCodes: ZeroNineArray[]) {
-		const codes = [initialsCode, ...getDobCodes];
+	};
+	public generateBaseId(initialsCode: ZeroNineArray, dobCodes: ZeroNineArray[]) {
+		const codes = [initialsCode, ...dobCodes];
 		codes.forEach((code) => zeroNineArraySchema.parse(code));
 		const id = codes.join().replaceAll(',', ''); // increments control sequence from 00 until no clashes are found
+		if (!/^\d{8}$/.test(id)) {
+			throw new Error('baseId must contain exactly 8 digits');
+		}
 		return id;
 	}
 

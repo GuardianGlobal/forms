@@ -24,17 +24,18 @@ const ssnSchema = z
 const phoneNumerSchema = z
 	.string()
 	.trim()
-	.min(12)
-	.max(12)
-	.regex(/^\d{3}-\d{3}-\d{4}$/);
+	.min(3)
+	.max(16)
+	.regex(/^\+[1-9]\d{1,14}$/);
 const stateCodeSchema = z.string().trim().min(2).max(2);
 const zipCodeSchema = z.string().trim().min(5).max(10);
 
 export const employeeFormSubmissionSchema = z.object({
+	agencyId: z.string().trim().min(1).max(63),
 	firstName: varchar50Schema,
 	lastName: varchar50Schema,
 	preferredName: varchar50NullableSchema,
-	employementStatus: employmentStatusSchema,
+	employmentStatus: employmentStatusSchema,
 	gender: genderAbrevSchema,
 	dateOfBirth: z.coerce.string(),
 	socialSecurityNumber: ssnSchema,
@@ -45,7 +46,5 @@ export const employeeFormSubmissionSchema = z.object({
 	city: varchar50Schema,
 	stateCode: stateCodeSchema,
 	zipCode: zipCodeSchema,
-	createdAt: z.coerce.date(),
-	updatedAt: z.coerce.date(),
 });
 export type EmployeeFormSubmission = z.output<typeof employeeFormSubmissionSchema>;

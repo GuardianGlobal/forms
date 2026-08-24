@@ -1,22 +1,18 @@
-import {
-	EmployeeFormSubmission,
-	employeeFormSubmissionSchema,
-} from './submission-orchestrator.schema.js';
-import { DatabaseClient } from '#src/db/database-client.module.js';
+import { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
+import { EmployeeFormSubmission } from './submission-orchestrator.schema.js';
 
 export class SubmissionOrchestrator {
 	constructor(
 		private readonly id: IdGeneratorService,
-		private readonly db: DatabaseClient,
+		private readonly formsRepo: EmployeeFormsRepository,
 	) {}
-	async handleSubmission(body: unknown): Promise<{ result: boolean }> {
-		const employeeRecordsPayload = this.id.createEmployeeId();
-		const status: { result: boolean } = await this.db.updateDb();
-
-		if (status.result) {
-			return { result: true };
+	async handleSubmission(body: EmployeeFormSubmission): Promise<void> {
+		const employeeId = await this.id.createEmployeeId();
+		try {
+			await this.formsRepo.insertEmployeeRecord(employeeId, body);
+		} catch (error) {
+			throw error;
 		}
-		return { result: false };
 	}
 }

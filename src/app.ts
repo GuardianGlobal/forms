@@ -1,9 +1,12 @@
 import { Chalk } from 'chalk';
 import express, { Request, Response } from 'express';
+import { DatabaseError } from 'pg';
 import { SubmissionOrchestrator } from './submission-orchestrator/submission-orchestrator.module.js';
 import { employeeFormSubmissionSchema } from './submission-orchestrator/submission-orchestrator.schema.js';
 import { IdGeneratorService } from './id/id-generator-service.module.js';
-import { DatabaseClient } from './db/database-client.module.js';
+import { EmployeeFormsRepository } from './db/employee-forms-repository.module.js';
+import { AgencyDatabaseConfig, AgencyPoolManager } from './db/agency-pool-manager.module.js';
+import { resolveConfig } from './util/resolve-config.js';
 
 const hostname = process.env.HOST;
 const port = process.env.PORT;
@@ -41,40 +44,29 @@ app.get('/', (req, res) => {
 
 /*-------------------------------------------------------------------------------------------------------------/
 |																											   |
-|											Submissions Handlers											   |
+|										Employee Submissions Handlers									       |
 |																											   |
 /-------------------------------------------------------------------------------------------------------------*/
 
 // Instantiate Class Componenets
 
-const db = new DatabaseClient('');
-
-app.post('/submissions', async (request: Request, response: Response) => {
+app.post('/employees', async (request: Request, response: Response) => {
 	console.log(request.method, request.url);
-	const parsed = employeeFormSubmissionSchema.safeParse(request.body);
-
-	if (!parsed.success) {
-		console.error(parsed.error);
-		return { result: false };
-	}
-
-	const employee = parsed.data;
-	const id = new IdGeneratorService(employee, db);
-	const status = await new SubmissionOrchestrator(id, db).handleSubmission(request.body);
-	if (status.result) {
+	try {
+		const employee = employeeFormSubmissionSchema.parse(request.body);
+		const db = await new AgencyPoolManager(resolveConfig).getPool(employee.agencyId);
+		const repo = new EmployeeFormsRepository(db);
+		const id = new IdGeneratorService(employee, repo);
+		await new SubmissionOrchestrator(id, repo).handleSubmission(request.body);
 		response.writeHead(201);
 		response.end('Data stored in DB');
-	} else {
+	} catch (error) {
+		if (error instanceof DatabaseError && error.code === '23505') {
+			response.writeHead(409);
+			response.end(error.detail ?? 'Resource already exists');
+			return;
+		}
 		response.writeHead(401);
 		response.end('Check request body and retry');
 	}
 });
-
-class Name {
-	constructor(a: any, b: any) {}
-	name() {}
-}
-
-function name(a: string, b: number) {
-	console.log(a);
-}

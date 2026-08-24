@@ -2,7 +2,7 @@
 //describe, it, expect
 import { IdGeneratorService } from './id-generator-service.module.js';
 import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
-import type { DatabaseClient } from '#src/db/database-client.module.js';
+import type { DatabaseClient } from '#src/db/employee-forms-repository.module.js';
 
 describe('IdGenerotorService', () => {
 	const db: Pick<DatabaseClient, 'query'> = {
