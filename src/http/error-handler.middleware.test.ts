@@ -2,10 +2,10 @@
 
 import type { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
-import { AppError } from './app-error.js';
-import { EncryptionError } from './encryption-error.js';
-import { errorHandler } from './error-handler.middleware.js';
-import { EncryptionErrors, Errors } from './errors.js';
+import { AppError } from '#src/http/app-error.js';
+import { EncryptionError } from '#src/http/encryption-error.js';
+import { errorHandler } from '#src/http/error-handler.middleware.js';
+import { EncryptionErrors, Errors } from '#src/http/errors.js';
 
 type ResponseHarness = {
 	response: Response;
@@ -136,14 +136,18 @@ describe('errorHandler', () => {
 			},
 			{
 				name: 'key version unavailable',
-				encryptionError: EncryptionErrors.keyVersionUnavailable(new Error('unknown version')),
+				encryptionError: EncryptionErrors.keyVersionUnavailable(
+					new Error('unknown version'),
+				),
 				status: 503,
 				code: 'SERVICE_UNAVAILABLE',
 				message: 'The service is temporarily unavailable.',
 			},
 			{
 				name: 'decryption failure',
-				encryptionError: EncryptionErrors.decryptionFailed(new Error('authentication failed')),
+				encryptionError: EncryptionErrors.decryptionFailed(
+					new Error('authentication failed'),
+				),
 				status: 500,
 				code: 'INTERNAL_ERROR',
 				message: 'An unexpected error occurred.',
@@ -223,24 +227,27 @@ describe('errorHandler', () => {
 				code: 'SERVICE_UNAVAILABLE',
 				message: 'The service is temporarily unavailable.',
 			},
-		])('maps the $name error to its public response', ({ appError, status: expectedStatus, code, message }) => {
-			const { response, status, json } = createResponse('req_app_error');
+		])(
+			'maps the $name error to its public response',
+			({ appError, status: expectedStatus, code, message }) => {
+				const { response, status, json } = createResponse('req_app_error');
 
-			errorHandler(appError, request, response, next as unknown as NextFunction);
+				errorHandler(appError, request, response, next as unknown as NextFunction);
 
-			expect(status).toHaveBeenCalledOnce();
-			expect(status).toHaveBeenCalledWith(expectedStatus);
-			expect(json).toHaveBeenCalledOnce();
-			expect(json).toHaveBeenCalledWith({
-				error: {
-					code,
-					message,
-					requestId: 'req_app_error',
-				},
-			});
-			expect(next).not.toHaveBeenCalled();
-			expect(warn).not.toHaveBeenCalled();
-		});
+				expect(status).toHaveBeenCalledOnce();
+				expect(status).toHaveBeenCalledWith(expectedStatus);
+				expect(json).toHaveBeenCalledOnce();
+				expect(json).toHaveBeenCalledWith({
+					error: {
+						code,
+						message,
+						requestId: 'req_app_error',
+					},
+				});
+				expect(next).not.toHaveBeenCalled();
+				expect(warn).not.toHaveBeenCalled();
+			},
+		);
 
 		it('supports additional status and error-code combinations represented by AppError', () => {
 			const appError = new AppError(413, 'PAYLOAD_TOO_LARGE', 'The request is too large.');
@@ -331,7 +338,12 @@ describe('errorHandler', () => {
 			response.locals.requestId = undefined;
 
 			expect(() =>
-				errorHandler(new Error('failure'), request, response, next as unknown as NextFunction),
+				errorHandler(
+					new Error('failure'),
+					request,
+					response,
+					next as unknown as NextFunction,
+				),
 			).not.toThrow();
 			expect(status).toHaveBeenCalledWith(500);
 			expect(json).toHaveBeenCalledWith({

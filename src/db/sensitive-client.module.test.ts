@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { Pool, PoolClient } from 'pg';
-import { SensitivePoolManager } from './sensitive-client.module.js';
+import { SensitivePoolManager } from '#src/db/sensitive-pool-manager.module.js';
 
 const databaseConfig = {
 	host: 'localhost',

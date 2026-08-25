@@ -1,9 +1,9 @@
 import express from 'express';
 import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
-import { SensitivePoolManager } from './db/sensitive-client.module.js';
+import { SensitivePoolManager } from '#src/db/sensitive-pool-manager.module.js';
 import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
 import { errorHandler } from './http/error-handler.middleware.js';
-import { gracefulShutdown } from './app/handle-graceful-shutdown.js';
+import { gracefulShutdown } from './app/graceful-shutdown.js';
 import { postEmployees } from './routes/employees.route.js';
 import { getMain } from './routes/main.route.js';
 

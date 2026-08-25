@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { IdGeneratorService } from './id-generator-service.module.js';
+import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
 import type { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
 import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
@@ -33,15 +33,9 @@ describe('IdGeneratorService', () => {
 
 	beforeEach(() => {
 		idExists = vi.fn<SensitiveClient['idExists']>().mockResolvedValue(null);
-		getEmployeeIds = vi
-			.fn<EmployeeFormsRepository['getEmployeeIds']>()
-			.mockResolvedValue([]);
+		getEmployeeIds = vi.fn<EmployeeFormsRepository['getEmployeeIds']>().mockResolvedValue([]);
 
-		idService = new IdGeneratorService(
-			{ idExists },
-			form,
-			{ getEmployeeIds },
-		);
+		idService = new IdGeneratorService({ idExists }, form, { getEmployeeIds });
 	});
 
 	describe('generateBaseId', () => {

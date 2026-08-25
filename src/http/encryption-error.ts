@@ -1,4 +1,4 @@
-import { AppError, PublicErrorCode } from './app-error.js';
+import { AppError, PublicErrorCode } from '#src/http/app-error.js';
 
 export type EncryptionOperation = 'configuration' | 'encrypt' | 'decrypt';
 

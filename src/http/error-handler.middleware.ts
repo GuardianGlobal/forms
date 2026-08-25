@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { AppError } from './app-error.js';
-import { EncryptionError } from './encryption-error.js';
+import { AppError } from '#src/http/app-error.js';
+import { EncryptionError } from '#src/http/encryption-error.js';
 
 export function errorHandler(
 	error: unknown,

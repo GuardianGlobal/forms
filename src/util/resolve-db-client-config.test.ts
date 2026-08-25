@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { resolveDbClientConfig } from './resolve-db-client-config.js';
+import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
 
 describe('resolveDbClientConfig', () => {
 	afterEach(() => {
