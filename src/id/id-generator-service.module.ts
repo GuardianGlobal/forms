@@ -7,17 +7,24 @@ import {
 	stringCharacterSchema,
 	dateCodeSchema,
 } from '#src/id/id-generator-service.schema.js';
+import { Errors } from '#src/http/errors.js';
+import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
+import type { SensitiveInfo } from '#src/db/sensitive-client.schema.js';
+
+type SensitiveIdLookup = Pick<SensitiveClient, 'idExists'>;
+type EmployeeIdRepository = Pick<EmployeeFormsRepository, 'getEmployeeIds'>;
 
 export class IdGeneratorService {
 	constructor(
+		private readonly sensitiveClient: SensitiveIdLookup,
 		private readonly form: EmployeeFormSubmission,
-		private readonly formsRepo: EmployeeFormsRepository,
+		private readonly formsRepo: EmployeeIdRepository,
 	) {}
 	private baseId: string = '';
 	private collisionSequence: string = '000';
 	private collisionCounter: number = 0;
 
-	public createEmployeeId = async () => {
+	public createEmployeeId = async (ssn: string) => {
 		this.baseId = this.generateBaseId(
 			this.getInitialsCode(this.form.firstName, this.form.lastName),
 			this.getDobCodes(this.form.dateOfBirth),
@@ -36,19 +43,27 @@ export class IdGeneratorService {
 					this.collisionSequence = String(this.collisionCounter);
 			}
 		};
+		const newId = this.baseId + this.collisionSequence;
 		for (const id of ids) {
-			if (id === this.baseId + this.collisionSequence) {
+			if (id === newId) {
+				const result: SensitiveInfo | null = await this.sensitiveClient.idExists(newId);
+					if (result) {
+						if (result.id === id && result.ssn === ssn && result.id === newId) {
+							// duplicate record, throw error.
+							throw Errors.conflict('Forbiden! Record already exists under that id');
+					}
+				}
 				incrementColSeq();
 			} else {
 				break;
 			}
 		}
-		return this.baseId + this.collisionSequence;
+		return newId;
 	};
 	public generateBaseId(initialsCode: ZeroNineArray, dobCodes: ZeroNineArray[]) {
 		const codes = [initialsCode, ...dobCodes];
 		codes.forEach((code) => zeroNineArraySchema.parse(code));
-		const id = codes.join().replaceAll(',', ''); // increments control sequence from 00 until no clashes are found
+		const id = codes.join().replaceAll(',', '');
 		if (!/^\d{8}$/.test(id)) {
 			throw new Error('baseId must contain exactly 8 digits');
 		}

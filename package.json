@@ -4,11 +4,11 @@
 	"description": "the forms repository for https://portal.myguardiancares.com",
 	"main": "index.js",
 	"scripts": {
-		"clean": "pids=$(lsof -t -c node 2>/dev/null | sort -u); if [ -n \"$pids\" ]; then echo \"Stopping Node processes: $pids\"; kill $pids; else echo \"No Node processes found.\"; fi",
-		"req": "npx tsx watch --env-file=.env ./src/request.ts",
-		"dev": "npx tsx watch --env-file=.env ./src/app.ts",
+		"req": "tsx watch --env-file=.env ./src/request.ts",
+		"dev": "tsx watch --env-file=.env ./src/app.ts",
 		"compile": "npx tsc --noEmit",
 		"test": "vitest",
+		"test:integration": "RUN_DB_INTEGRATION_TESTS=true node --env-file=.env ./node_modules/vitest/vitest.mjs --run test/submission-orchestrator.integration.test.ts",
 		"test:watch": "vitest watch"
 	},
 	"repository": {

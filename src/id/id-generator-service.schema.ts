@@ -33,5 +33,16 @@ const dateCodeSchema = z
 		};
 	});
 
-export { zeroNineNumberSchema, zeroNineArraySchema, dateCodeSchema, stringCharacterSchema };
+const employeeIdSchema = z
+	.string()
+	.trim()
+	.regex(/[0-9]{11}/);
+
+export {
+	zeroNineNumberSchema,
+	zeroNineArraySchema,
+	dateCodeSchema,
+	stringCharacterSchema,
+	employeeIdSchema,
+};
 export type { ZeroNineArray };

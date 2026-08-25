@@ -11,6 +11,6 @@ export default defineConfig({
 		// 1. Tells Vitest to inject describe/it/expect into the global execution context
 		globals: true,
 		environment: 'node',
-		include: ['src/**/*.test.ts'],
+		include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
 	},
 });

@@ -1,0 +1,67 @@
+/// <reference types="vitest/globals" />
+import { IdGeneratorService } from './id-generator-service.module.js';
+import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import type { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
+import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
+
+const agencyId = 'guardian';
+
+describe('IdGeneratorService', () => {
+	const form = employeeFormSubmissionSchema.parse({
+		agencyId,
+		firstName: 'Aimee',
+		lastName: 'Hesser',
+		preferredName: 'Buesnel',
+		employmentStatus: 'inactive',
+		gender: 'F',
+		dateOfBirth: '1995-11-06',
+		socialSecurityNumber: '296-87-2365',
+		email: 'abuesnel0@wikipedia.org',
+		phoneNumber: '+17132147178',
+		address1: '2965 Straubel Pass',
+		address2: null,
+		city: 'Houston',
+		stateCode: 'TX',
+		zipCode: '77281',
+		createdAt: '2015-01-15T07:30:31Z',
+		updatedAt: '2018-06-05T21:20:31Z',
+	});
+
+	let idExists: ReturnType<typeof vi.fn<SensitiveClient['idExists']>>;
+	let getEmployeeIds: ReturnType<typeof vi.fn<EmployeeFormsRepository['getEmployeeIds']>>;
+	let idService: IdGeneratorService;
+
+	beforeEach(() => {
+		idExists = vi.fn<SensitiveClient['idExists']>().mockResolvedValue(null);
+		getEmployeeIds = vi
+			.fn<EmployeeFormsRepository['getEmployeeIds']>()
+			.mockResolvedValue([]);
+
+		idService = new IdGeneratorService(
+			{ idExists },
+			form,
+			{ getEmployeeIds },
+		);
+	});
+
+	describe('generateBaseId', () => {
+		it('should return baseID: 37951106', () => {
+			const id = idService.generateBaseId(
+				idService.getInitialsCode(form.firstName, form.lastName),
+				idService.getDobCodes(form.dateOfBirth),
+			);
+
+			expect(id).toBe('37951106');
+		});
+	});
+
+	describe('createEmployeeId', () => {
+		it('should return full ID: 37951106000', async () => {
+			const id = await idService.createEmployeeId(form.socialSecurityNumber);
+
+			expect(id).toBe('37951106000');
+			expect(getEmployeeIds).toHaveBeenCalledWith('37951106');
+			expect(idExists).not.toHaveBeenCalled();
+		});
+	});
+});

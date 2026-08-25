@@ -6,13 +6,17 @@ export type AgencyDatabaseConfig = {
 	database: string;
 	user: string;
 	password: string;
+	options: string;
 };
 
 export class AgencyPoolManager {
 	private readonly pools = new Map<string, Pool>();
 
 	constructor(
-		private readonly resolveConfig: (agencyId: string) => Promise<AgencyDatabaseConfig>,
+		private readonly resolveConfig: (
+			agencyId: string,
+			clientType: 'public' | 'sensitive',
+		) => Promise<AgencyDatabaseConfig>,
 	) {}
 
 	async getPool(agencyId: string): Promise<Pool> {
@@ -22,7 +26,7 @@ export class AgencyPoolManager {
 			return existing;
 		}
 
-		const config = await this.resolveConfig(agencyId);
+		const config = await this.resolveConfig(agencyId, 'public');
 
 		const pool = new Pool({
 			...config,
@@ -33,5 +37,11 @@ export class AgencyPoolManager {
 
 		this.pools.set(agencyId, pool);
 		return pool;
+	}
+
+	async endAll(): Promise<void> {
+		const pools = [...this.pools.values()];
+		this.pools.clear();
+		await Promise.all(pools.map((pool) => pool.end()));
 	}
 }

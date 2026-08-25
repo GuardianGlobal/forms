@@ -1,5 +1,4 @@
 import type { Pool } from 'pg';
-import { AgencyPoolManager } from './agency-pool-manager.module.js';
 import { EmployeeFormSubmission } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
 
 type EmployeeIdRow = {
@@ -8,6 +7,7 @@ type EmployeeIdRow = {
 
 export class EmployeeFormsRepository {
 	constructor(private readonly pool: Pool) {}
+
 	async getEmployeeIds(baseId: string): Promise<string[]> {
 		const result = await this.pool.query<EmployeeIdRow>(
 			`
