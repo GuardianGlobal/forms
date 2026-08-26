@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
 import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
 

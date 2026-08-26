@@ -1,8 +1,17 @@
-import { server } from '#src/app/server.js';
-import { publicPoolManager, sensitivePoolManager } from '#src/app.js';
+import type { Server } from 'node:http';
 
-export function gracefulShutdown() {
+type PoolManager = {
+	endAll(): Promise<void>;
+};
+
+type GracefulShutdownDependencies = {
+	server: Server;
+	poolManagers: PoolManager[];
+};
+
+export function gracefulShutdown({ server, poolManagers }: GracefulShutdownDependencies) {
 	let isShuttingDown = false;
+
 	function shutdown(signal: NodeJS.Signals): void {
 		if (isShuttingDown) {
 			return;
@@ -12,7 +21,7 @@ export function gracefulShutdown() {
 
 		server.close(async (serverError) => {
 			try {
-				await Promise.all([publicPoolManager.endAll(), sensitivePoolManager.endAll()]);
+				await Promise.all(poolManagers.map((poolManager) => poolManager.endAll()));
 				if (serverError) {
 					throw serverError;
 				}
@@ -24,5 +33,6 @@ export function gracefulShutdown() {
 			}
 		});
 	}
+
 	return shutdown;
 }

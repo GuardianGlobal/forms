@@ -1,5 +1,5 @@
-import type { Pool } from 'pg';
-import { EmployeeFormSubmission } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import type { Pool, QueryResult } from 'pg';
+import { EmployeeFormSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 
 type EmployeeIdRow = {
 	employee_id: string;

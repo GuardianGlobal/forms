@@ -1,4 +1,4 @@
-import { EmployeeFormSubmission } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import { EmployeeFormSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
 import type { ZeroNineArray } from '#src/id/id-generator-service.schema.js';
 import {
@@ -47,10 +47,10 @@ export class IdGeneratorService {
 		for (const id of ids) {
 			if (id === newId) {
 				const result: SensitiveInfo | null = await this.sensitiveClient.idExists(newId);
-					if (result) {
-						if (result.id === id && result.ssn === ssn && result.id === newId) {
-							// duplicate record, throw error.
-							throw Errors.conflict('Forbiden! Record already exists under that id');
+				if (result) {
+					if (result.id === id && result.ssn === ssn && result.id === newId) {
+						// duplicate record, throw error.
+						throw Errors.conflict('Forbiden! Record already exists under that id');
 					}
 				}
 				incrementColSeq();

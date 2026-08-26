@@ -1,4 +1,4 @@
-import { EmployeeFormSubmission } from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+import { EmployeeFormSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { encryptSsn } from '#src/util/encrypt-ssn.js';
 
 export function formatSensitiveData(employeeId: string, employee: EmployeeFormSubmission) {

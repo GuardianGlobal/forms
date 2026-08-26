@@ -52,6 +52,7 @@ describe('SensitivePoolManager', () => {
 		});
 
 		expect(result).toBe('complete');
+		expect(release).toHaveBeenCalledOnce();
 		expect(release).toHaveBeenCalledWith(true);
 		await manager.endAll();
 	});
