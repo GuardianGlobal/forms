@@ -90,7 +90,7 @@ const dateOfBirthSchema = z
 	.union([MMDDYYYYWithSlashesDateSchema, MMDDYYYYWithDashesDateSchema, YYYYMMDDSchema]) // 3000-01-31
 	.refine((birthDate) => isValidBirthDate(birthDate));
 
-export const employeeFormSubmissionSchema = z.object({
+export const employeeInfoSubmissionSchema = z.object({
 	agencyId: z.string().trim().min(1).max(63),
 	firstName: varchar50Schema,
 	lastName: varchar50Schema,
@@ -107,4 +107,4 @@ export const employeeFormSubmissionSchema = z.object({
 	stateCode: stateCodeSchema,
 	zipCode: zipCodeSchema,
 });
-export type EmployeeFormSubmission = z.output<typeof employeeFormSubmissionSchema>;
+export type EmployeeInfoSubmission = z.output<typeof employeeInfoSubmissionSchema>;

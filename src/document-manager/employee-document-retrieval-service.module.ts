@@ -1,23 +1,20 @@
-import { EmployeeDocument } from '#src/document-manager/documents-manager.module.js';
 import { EmployeeContactService } from '#src/integrations/employee-contact-service.module.js';
-import { EmployeeFormsService } from '#src/integrations/employee-forms-service.module.js';
-
-export interface EmployeeDocumentConfig {
-	docType: EmployeeDocument;
-	isOnFile: boolean;
-}
+import { OndboardingFormsService } from '#src/integrations/onboarding-forms-service.module.js';
+import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
+import { EmployeeDocumentConfig } from '#src/document-manager/documents-manager.schema.js';
 
 export class EmployeeDocumentRetrievalService {
 	constructor(
 		private readonly contactApi: EmployeeContactService,
-		private readonly formsApi: EmployeeFormsService,
+		private readonly onboardingFormsService: OndboardingFormsService,
+		private readonly emailComposer: EmailComposerService,
 	) {}
 	sendEmployeeDocumentsForm = async (
 		employeeId: string,
 		config?: Array<EmployeeDocumentConfig>,
 	) => {
-		const email = await this.contactApi.getEmployeeEmail(employeeId);
-		const forms = await this.formsApi.getForms(config);
-		await this.contactApi.sendForms(email, forms);
+		const forms = await this.onboardingFormsService.getForms(config);
+		const emailMessage = await this.emailComposer.composeEmail(employeeId);
+		await this.contactApi.sendEmail(emailMessage);
 	};
 }

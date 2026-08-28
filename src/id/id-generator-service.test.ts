@@ -1,13 +1,13 @@
 /// <reference types="vitest/globals" />
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import { employeeFormSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import type { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
+import { employeeInfoSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import type { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
 
 const agencyId = 'guardian';
 
 describe('IdGeneratorService', () => {
-	const form = employeeFormSubmissionSchema.parse({
+	const employeeInfo = employeeInfoSubmissionSchema.parse({
 		agencyId,
 		firstName: 'Aimee',
 		lastName: 'Hesser',
@@ -28,21 +28,21 @@ describe('IdGeneratorService', () => {
 	});
 
 	let idExists: ReturnType<typeof vi.fn<SensitiveClient['idExists']>>;
-	let getEmployeeIds: ReturnType<typeof vi.fn<EmployeeFormsRepository['getEmployeeIds']>>;
+	let getEmployeeIds: ReturnType<typeof vi.fn<EmployeeInfoRepository['getEmployeeIds']>>;
 	let idService: IdGeneratorService;
 
 	beforeEach(() => {
 		idExists = vi.fn<SensitiveClient['idExists']>().mockResolvedValue(null);
-		getEmployeeIds = vi.fn<EmployeeFormsRepository['getEmployeeIds']>().mockResolvedValue([]);
+		getEmployeeIds = vi.fn<EmployeeInfoRepository['getEmployeeIds']>().mockResolvedValue([]);
 
-		idService = new IdGeneratorService({ idExists }, form, { getEmployeeIds });
+		idService = new IdGeneratorService({ idExists }, { getEmployeeIds });
 	});
 
 	describe('generateBaseId', () => {
 		it('should return baseID: 37951106', () => {
 			const id = idService.generateBaseId(
-				idService.getInitialsCode(form.firstName, form.lastName),
-				idService.getDobCodes(form.dateOfBirth),
+				idService.getInitialsCode(employeeInfo.firstName, employeeInfo.lastName),
+				idService.getDobCodes(employeeInfo.dateOfBirth),
 			);
 
 			expect(id).toBe('37951106');
@@ -51,7 +51,7 @@ describe('IdGeneratorService', () => {
 
 	describe('createEmployeeId', () => {
 		it('should return full ID: 37951106000', async () => {
-			const id = await idService.createEmployeeId(form.socialSecurityNumber);
+			const id = await idService.createEmployeeId(employeeInfo);
 
 			expect(id).toBe('37951106000');
 			expect(getEmployeeIds).toHaveBeenCalledWith('37951106');

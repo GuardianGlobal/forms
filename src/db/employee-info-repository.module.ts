@@ -1,11 +1,11 @@
 import type { Pool, QueryResult } from 'pg';
-import { EmployeeFormSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 
 type EmployeeIdRow = {
 	employee_id: string;
 };
 
-export class EmployeeFormsRepository {
+export class EmployeeInfoRepository {
 	constructor(private readonly pool: Pool) {}
 
 	async getEmployeeIds(baseId: string): Promise<string[]> {
@@ -35,7 +35,7 @@ export class EmployeeFormsRepository {
 	}
 	async insertEmployeeRecord(
 		employeeId: string,
-		employee: EmployeeFormSubmission,
+		employee: EmployeeInfoSubmission,
 	): Promise<void> {
 		await this.pool.query(
 			`

@@ -5,3 +5,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Google OAuth files must never be committed.
+client_secret*.json
+credentials.json
+token.json

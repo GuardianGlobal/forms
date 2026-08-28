@@ -1,5 +1,5 @@
-import { EmployeeFormSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
+import { EmployeeInfoSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import type { ZeroNineArray } from '#src/id/id-generator-service.schema.js';
 import {
 	zeroNineNumberSchema,
@@ -12,43 +12,46 @@ import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
 import type { SensitiveInfo } from '#src/db/sensitive-client.schema.js';
 
 type SensitiveIdLookup = Pick<SensitiveClient, 'idExists'>;
-type EmployeeIdRepository = Pick<EmployeeFormsRepository, 'getEmployeeIds'>;
+type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds'>;
 
 export class IdGeneratorService {
 	constructor(
 		private readonly sensitiveClient: SensitiveIdLookup,
-		private readonly form: EmployeeFormSubmission,
-		private readonly formsRepo: EmployeeIdRepository,
+		private readonly employeeInfoRepo: EmployeeIdRepository,
 	) {}
-	private baseId: string = '';
-	private collisionSequence: string = '000';
-	private collisionCounter: number = 0;
 
-	public createEmployeeId = async (ssn: string) => {
-		this.baseId = this.generateBaseId(
-			this.getInitialsCode(this.form.firstName, this.form.lastName),
-			this.getDobCodes(this.form.dateOfBirth),
+	public createEmployeeId = async (employee: EmployeeInfoSubmission) => {
+		let baseId: string = '';
+		let collisionSequence: string = '000';
+		let collisionCounter: number = 0;
+		baseId = this.generateBaseId(
+			this.getInitialsCode(employee.firstName, employee.lastName),
+			this.getDobCodes(employee.dateOfBirth),
 		);
-		const ids: string[] = await this.formsRepo.getEmployeeIds(this.baseId);
+		const ids: string[] = await this.employeeInfoRepo.getEmployeeIds(baseId);
 		const incrementColSeq = () => {
-			this.collisionCounter++;
-			switch (String(this.collisionCounter).length) {
+			collisionCounter++;
+			switch (String(collisionCounter).length) {
 				case 1:
-					this.collisionSequence = '00' + String(this.collisionCounter);
+					collisionSequence = '00' + String(collisionCounter);
 					break;
 				case 2:
-					this.collisionSequence = '0' + String(this.collisionCounter);
+					collisionSequence = '0' + String(collisionCounter);
 					break;
 				default:
-					this.collisionSequence = String(this.collisionCounter);
+					collisionSequence = String(collisionCounter);
 			}
 		};
-		const newId = this.baseId + this.collisionSequence;
+		const newId = baseId + collisionSequence;
 		for (const id of ids) {
 			if (id === newId) {
 				const result: SensitiveInfo | null = await this.sensitiveClient.idExists(newId);
 				if (result) {
-					if (result.id === id && result.ssn === ssn && result.id === newId) {
+					if (
+						result.id === id &&
+						result.ssn === employee.socialSecurityNumber &&
+						result.id === newId
+					) {
 						// duplicate record, throw error.
 						throw Errors.conflict('Forbiden! Record already exists under that id');
 					}

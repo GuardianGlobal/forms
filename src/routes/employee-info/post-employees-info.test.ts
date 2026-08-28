@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
 import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
-import { data } from '#src/app_test_data/data.js';
+import { data } from '#src/submissions/data.js';
 
 const pool = await new AgencyPoolManager(resolveDbClientConfig).getPool('guardian');
 // describe, it, expect

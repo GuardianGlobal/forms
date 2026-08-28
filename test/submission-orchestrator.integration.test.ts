@@ -1,14 +1,14 @@
 /// <reference types="vitest/globals" />
 import type { Pool, QueryResultRow } from 'pg';
 import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
-import { EmployeeFormsRepository } from '#src/db/employee-forms-repository.module.js';
+import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import { SensitiveClient, SensitivePoolManager } from '#src/db/sensitive-client.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import { SubmissionOrchestrator } from '#src/submission-orchestrator/submission-orchestrator.module.js';
 import {
-	employeeFormSubmissionSchema,
-	type EmployeeFormSubmission,
-} from '#src/submission-orchestrator/submission-orchestrator.schema.js';
+	employeeInfoSubmissionSchema,
+	type EmployeeInfoSubmission,
+} from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
 
 interface PublicEmployeeRow extends QueryResultRow {
@@ -27,7 +27,7 @@ interface SensitiveEmployeeRow extends QueryResultRow {
 	nonce_length: number;
 }
 
-const submissions: EmployeeFormSubmission[] = [
+const submissions: EmployeeInfoSubmission[] = [
 	{
 		agencyId: 'guardian',
 		firstName: 'Zara',
@@ -79,7 +79,7 @@ const submissions: EmployeeFormSubmission[] = [
 		stateCode: 'IN',
 		zipCode: '46204',
 	},
-].map((submission) => employeeFormSubmissionSchema.parse(submission));
+].map((submission) => employeeInfoSubmissionSchema.parse(submission));
 
 const agencyId = 'guardian';
 const testEmails = submissions.map(({ email }) => email);
@@ -147,7 +147,7 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 
 				await sensitivePoolManager.withClient(agencyId, async (pgClient) => {
 					const sensitiveClient = new SensitiveClient(pgClient);
-					const repository = new EmployeeFormsRepository(publicPool);
+					const repository = new EmployeeInfoRepository(publicPool);
 
 					for (const submission of submissions) {
 						const idGenerator = new IdGeneratorService(

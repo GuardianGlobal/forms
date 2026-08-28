@@ -1,6 +1,19 @@
+import { EmailAdapter, EmailMessage } from './email-adapter.schema.js';
+export interface EmployeeInfo {
+	firstName: string;
+	email: string;
+}
+
 export class EmployeeContactService {
-	getEmployeeEmail = async (employeeId: string): Promise<string> => {
-		return '';
+	constructor(
+		public employeeInfo: EmployeeInfo,
+		private readonly emailHost: EmailAdapter,
+	) {}
+	getEmployeeEmail = (): string => {
+		return this.employeeInfo.email;
 	};
-	sendForms = async (email: string, forms: unknown): Promise<void> => {};
+	generateMessage() {}
+	sendEmail = async (message: EmailMessage): Promise<void> => {
+		await this.emailHost.sendEmail(message);
+	};
 }

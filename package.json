@@ -8,7 +8,9 @@
 		"compile": "npx tsc --noEmit",
 		"test": "vitest",
 		"test:integration": "RUN_DB_INTEGRATION_TESTS=true node --env-file=.env ./node_modules/vitest/vitest.mjs --run test/submission-orchestrator.integration.test.ts",
-		"test:watch": "vitest watch"
+		"test:watch": "vitest watch",
+		"gmail:authorize": "tsx --env-file=.env scripts/authorize-gmail.ts",
+		"gmail:test": "tsx --env-file=.env scripts/send-gmail-test.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -23,10 +25,12 @@
 	},
 	"homepage": "https://github.com/GuardianGlobal/forms#readme",
 	"dependencies": {
+		"@google-cloud/local-auth": "^3.0.1",
 		"@prisma/adapter-pg": "6.12.0",
 		"@prisma/client": "6.12.0",
 		"chalk": "^6.0.0",
 		"express": "^5.2.1",
+		"googleapis": "^176.0.0",
 		"pg": "8.23.0",
 		"zod": "^4.4.3"
 	},

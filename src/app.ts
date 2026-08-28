@@ -1,6 +1,6 @@
 import express from 'express';
 import { errorHandler } from '#src/http/error-handler.middleware.js';
-import { postEmployees } from '#src/routes/employees.route.js';
+import { postEmployeeInfo } from '#src/routes/employee-info/post-employee-info.route.js';
 import { postEmployeeDocuments } from '#src/routes/employee-documents.route.js';
 import { getMain } from '#src/routes/main.route.js';
 export { publicPoolManager, sensitivePoolManager } from '#src/app/dependencies.js';
@@ -18,7 +18,7 @@ app.get('/', getMain);
 |																											   |
 /-------------------------------------------------------------------------------------------------------------*/
 
-app.post('/employees', postEmployees);
+app.post('/employee-info', postEmployeeInfo);
 app.post('/employee-documents', postEmployeeDocuments);
 
 // Must be registered after the routes
