@@ -8,11 +8,14 @@ const agencyId = 'guardian';
 
 describe('IdGeneratorService', () => {
 	const employeeInfo = employeeInfoSubmissionSchema.parse({
+		agencyName: 'Guardian Home Care',
 		agencyId,
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
+		jobTitle: 'PCA',
 		employmentStatus: 'inactive',
+		employmentType: 'W_2',
 		gender: 'F',
 		dateOfBirth: '1995-11-06',
 		socialSecurityNumber: '296-87-2365',

@@ -6,12 +6,12 @@ import { DocumentsManager } from '#src/document-manager/documents-manager.module
 import { EmployeeDocumentRetrievalService } from '#src/document-manager/employee-document-retrieval-service.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import {
-	EmployeeContactService,
+	EmployeeContactProvider,
 	type EmployeeInfo,
-} from '#src/integrations/employee-contact-service.module.js';
+} from '#src/integrations/employee-contact-provider.module.js';
 import { EmailMessageRepository } from '#src/db/email-message-repository.module.js';
 import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
-import { OndboardingFormsService } from '#src/integrations/onboarding-forms-service.module.js';
+import { OndboardingFormsProvider } from '#src/integrations/onboarding-forms-provider.module.js';
 import { GmailAdapter } from '#src/integrations/gmail/gmail-adapter.module.js';
 import { resolveGmailCredentials } from '#src/integrations/gmail/resolve-gmail-credentials.js';
 import { Pool } from 'pg';
@@ -22,28 +22,41 @@ export function createOnboardingOrchestrator(deps: {
 	publicPool: Pool;
 	sensitiveClient: SensitiveClient;
 }): OnboardingSubmissionOrchestrator {
-	const repo = new EmployeeInfoRepository(deps.publicPool);
+	const employeeInfoRepo = new EmployeeInfoRepository(deps.publicPool);
 	// Gmail
 	const gmail = new GmailAdapter(resolveGmailCredentials());
 	const employeeInfo: EmployeeInfo = {
 		firstName: deps.employee.firstName,
 		email: deps.employee.email,
 	};
-	const contactApi = new EmployeeContactService(employeeInfo, gmail);
-	const emailMessageRepository = new EmailMessageRepository(deps.employee.agencyId);
-	const emailComposer = new EmailComposerService(emailMessageRepository);
+	const contactApi = new EmployeeContactProvider(employeeInfo, gmail);
+	const emailMessageRepository = new EmailMessageRepository(
+		{
+			name: deps.employee.agencyName,
+			agencyId: deps.employee.agencyId,
+		},
+		deps.publicPool,
+	);
 	// SignNow
-	const employeeInfoService = new OndboardingFormsService();
+	const onboardingFormsService = new OndboardingFormsProvider();
+	const emailComposer = new EmailComposerService(emailMessageRepository, onboardingFormsService);
+
 	const retrievalService = new EmployeeDocumentRetrievalService(
 		contactApi,
-		employeeInfoService,
+		onboardingFormsService,
 		emailComposer,
 	);
 	// documents manager
 	const docuemntsRepo = new EmployeeDocumentsRepository(deps.publicPool);
-	const documentsManager = new DocumentsManager(retrievalService, docuemntsRepo);
+	const documentsManager = new DocumentsManager(docuemntsRepo);
 	// id generator
-	const id = new IdGeneratorService(deps.sensitiveClient, repo);
+	const idGenerator = new IdGeneratorService(deps.sensitiveClient, employeeInfoRepo);
 
-	return new OnboardingSubmissionOrchestrator(deps.sensitiveClient, id, repo, documentsManager);
+	return new OnboardingSubmissionOrchestrator(
+		deps.sensitiveClient,
+		idGenerator,
+		employeeInfoRepo,
+		documentsManager,
+		retrievalService,
+	);
 }

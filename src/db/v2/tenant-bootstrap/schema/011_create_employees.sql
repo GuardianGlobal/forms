@@ -2,7 +2,7 @@ CREATE TABLE public.employees (
     employee_id VARCHAR(11) PRIMARY KEY
         CONSTRAINT employees_employee_id_format
             CHECK (employee_id ~ '^[0-9]{11}$'),
-
+    job_title VARCHAR(30) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     preferred_name VARCHAR(50),
@@ -14,11 +14,19 @@ CREATE TABLE public.employees (
                     'inactive',
                     'active',
                     'on hold',
-                    'prn/waitlist',
+                    'prn',
+                    'waitlist',
                     'starting'
                 )
             ),
-
+    employment_type TEXT NOT NULL
+        CONSTRAINT employees_employment_type_valid
+            CHECK (
+                employment_type IN (
+                    'W_2',
+                    '1099'
+                )
+            ),
     gender VARCHAR(1)
         CONSTRAINT employees_gender_valid
             CHECK (gender IN ('F', 'M')),
@@ -60,7 +68,13 @@ CREATE TABLE public.employees (
             CHECK (zip_code ~ '^[0-9]{5}(-[0-9]{4})?$'),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT employees_job_titles_fk
+        FOREIGN KEY (job_title)
+        REFERENCES public.job_titles (job_title)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX employees_employee_id_prefix_idx

@@ -4,7 +4,7 @@ export interface EmployeeInfo {
 	email: string;
 }
 
-export class EmployeeContactService {
+export class EmployeeContactProvider {
 	constructor(
 		public employeeInfo: EmployeeInfo,
 		private readonly emailHost: EmailAdapter,

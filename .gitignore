@@ -10,3 +10,5 @@ node_modules/
 client_secret*.json
 credentials.json
 token.json
+
+src/db/.DS_Store

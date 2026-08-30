@@ -2,15 +2,8 @@ import { z } from 'zod';
 
 const varchar50Schema = z.string().trim().min(1).max(50);
 const varchar50NullableSchema = z.union([z.string().trim().max(50), z.null()]);
-const employmentStatusSchema = z.enum([
-	'inactive',
-	'active',
-	'on hold',
-	'prn',
-	'waitlist',
-	'starting',
-]);
-const genderAbrevSchema = z.union([z.literal('F'), z.literal('M'), z.null()]);
+const databaseCodeSchema = (maxLength: number) => z.string().trim().min(1).max(maxLength);
+const genderAbrevSchema = z.union([z.string().trim().length(1), z.null()]);
 export const ssnSchema = z
 	.string()
 	.trim()
@@ -91,11 +84,14 @@ const dateOfBirthSchema = z
 	.refine((birthDate) => isValidBirthDate(birthDate));
 
 export const employeeInfoSubmissionSchema = z.object({
+	agencyName: z.string().trim().min(5).max(75),
 	agencyId: z.string().trim().min(1).max(63),
 	firstName: varchar50Schema,
 	lastName: varchar50Schema,
 	preferredName: varchar50NullableSchema,
-	employmentStatus: employmentStatusSchema,
+	jobTitle: databaseCodeSchema(30),
+	employmentStatus: databaseCodeSchema(12),
+	employmentType: databaseCodeSchema(30),
 	gender: genderAbrevSchema,
 	dateOfBirth: dateOfBirthSchema,
 	socialSecurityNumber: ssnSchema,

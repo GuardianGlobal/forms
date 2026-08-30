@@ -48,11 +48,11 @@ export class EmailCompositionKit {
 	}
 
 	public static employeeFirstName(): ValueExpression<string> {
-		return { type: 'resolver', resolve: context => context.employee.firstName };
+		return { type: 'resolver', resolve: (context) => context.employee.firstName };
 	}
 
 	public static agencyName(): ValueExpression<string> {
-		return { type: 'resolver', resolve: context => context.agency.name };
+		return { type: 'resolver', resolve: (context) => context.agency.name };
 	}
 
 	public static customClosing(value: string): ValueExpression<string> {
@@ -60,13 +60,13 @@ export class EmailCompositionKit {
 	}
 
 	public static hasExpiredDocuments(): Predicate {
-		return context => context.issues.some(issue => issue.issueCode === 'EXPIRED');
+		return (context) => context.issues.some((issue) => issue.issueCode === 'EXPIRED');
 	}
 
 	public static hasSensitiveDocuments(): Predicate {
-		return context =>
+		return (context) =>
 			context.issues.some(
-				issue => issue.containsSensitiveInformation || issue.requiresInPerson,
+				(issue) => issue.containsSensitiveInformation || issue.requiresInPerson,
 			);
 	}
 
@@ -77,19 +77,14 @@ export class EmailCompositionKit {
 	): ValueExpression<T> {
 		return {
 			type: 'resolver',
-			resolve: context =>
+			resolve: (context) =>
 				this.resolveValue(predicate(context) ? whenTrue : whenFalse, context),
 		};
 	}
 
-	public static resolveValue<T>(
-		expression: T | ValueExpression<T>,
-		context: EmailContext,
-	): T {
+	public static resolveValue<T>(expression: T | ValueExpression<T>, context: EmailContext): T {
 		if (this.isValueExpression(expression)) {
-			return expression.type === 'constant'
-				? expression.value
-				: expression.resolve(context);
+			return expression.type === 'constant' ? expression.value : expression.resolve(context);
 		}
 
 		return expression;

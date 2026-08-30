@@ -1,6 +1,7 @@
 CREATE TABLE public.employee_requirements (
     requirement_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id VARCHAR(11) NOT NULL,
+    config_version_id UUID NOT NULL,
     requirement_code TEXT NOT NULL,
     status TEXT NOT NULL,
     completed_on DATE,
@@ -20,6 +21,15 @@ CREATE TABLE public.employee_requirements (
         REFERENCES public.requirement_types (requirement_code)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
+
+    CONSTRAINT employee_requirements_config_version_fk
+        FOREIGN KEY (config_version_id)
+        REFERENCES public.requirement_config_versions (config_version_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT employee_requirements_employee_type_unique
+        UNIQUE (employee_id, requirement_code),
 
     CONSTRAINT employee_requirements_requirement_employee_unique
         UNIQUE (requirement_id, employee_id),

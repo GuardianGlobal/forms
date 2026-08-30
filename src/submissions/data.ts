@@ -1,6 +1,9 @@
 export const data = [
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -17,7 +20,10 @@ export const data = [
 		zipCode: '77281',
 	},
 	{
-		agencyId: 'guardia', // test agency id -> expecting 401 response for bad id
+		agencyId: 'guardia',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA', // test agency id -> expecting 401 response for bad id
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -35,6 +41,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 3, // should be 'string' -> 401 response for wrong type
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -52,6 +61,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser0001Hesser0001Hesser0001Hesser0001Hesser00012', // too long -> expecting 401 for too long string.
 		preferredName: 'Buesnel',
@@ -69,6 +81,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 3, // should be string or null -> expecting 401
@@ -86,6 +101,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -103,6 +121,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -120,6 +141,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -137,6 +161,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -154,6 +181,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -171,6 +201,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -188,6 +221,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -205,6 +241,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -222,6 +261,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -239,6 +281,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',
@@ -256,6 +301,9 @@ export const data = [
 	},
 	{
 		agencyId: 'guardian',
+		agencyName: 'Guardian Home Care',
+		employmentType: 'W_2',
+		jobTitle: 'PCA',
 		firstName: 'Aimee',
 		lastName: 'Hesser',
 		preferredName: 'Buesnel',

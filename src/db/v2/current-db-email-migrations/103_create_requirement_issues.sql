@@ -1,6 +1,72 @@
 BEGIN;
 
 ALTER TABLE public.employee_documents
+    ADD COLUMN storage_type TEXT,
+    ADD COLUMN file_path TEXT,
+    ADD COLUMN google_drive_file_id TEXT,
+    ADD COLUMN google_drive_id TEXT,
+    ADD COLUMN google_drive_parent_folder_id TEXT;
+
+UPDATE public.employee_documents
+SET storage_type = 's3';
+
+ALTER TABLE public.employee_documents
+    ALTER COLUMN storage_type SET NOT NULL,
+    ALTER COLUMN storage_key DROP NOT NULL,
+
+    ADD CONSTRAINT employee_documents_file_path_unique
+        UNIQUE (file_path),
+
+    ADD CONSTRAINT employee_documents_google_drive_file_id_unique
+        UNIQUE (google_drive_file_id),
+
+    ADD CONSTRAINT employee_documents_storage_type_valid
+        CHECK (storage_type IN ('s3', 'disk', 'google_drive')),
+
+    ADD CONSTRAINT employee_documents_storage_location_valid
+        CHECK (
+            (
+                storage_type = 's3'
+                AND storage_key IS NOT NULL
+                AND BTRIM(storage_key) <> ''
+                AND file_path IS NULL
+                AND google_drive_file_id IS NULL
+                AND google_drive_id IS NULL
+                AND google_drive_parent_folder_id IS NULL
+            )
+            OR
+            (
+                storage_type = 'disk'
+                AND file_path IS NOT NULL
+                AND BTRIM(file_path) <> ''
+                AND storage_key IS NULL
+                AND google_drive_file_id IS NULL
+                AND google_drive_id IS NULL
+                AND google_drive_parent_folder_id IS NULL
+            )
+            OR
+            (
+                storage_type = 'google_drive'
+                AND google_drive_file_id IS NOT NULL
+                AND BTRIM(google_drive_file_id) <> ''
+                AND storage_key IS NULL
+                AND file_path IS NULL
+            )
+        ),
+
+    ADD CONSTRAINT employee_documents_google_drive_id_not_blank
+        CHECK (
+            google_drive_id IS NULL
+            OR BTRIM(google_drive_id) <> ''
+        ),
+
+    ADD CONSTRAINT employee_documents_google_drive_parent_folder_id_not_blank
+        CHECK (
+            google_drive_parent_folder_id IS NULL
+            OR BTRIM(google_drive_parent_folder_id) <> ''
+        );
+
+ALTER TABLE public.employee_documents
     ADD CONSTRAINT employee_documents_document_requirement_unique
     UNIQUE (document_id, requirement_id);
 

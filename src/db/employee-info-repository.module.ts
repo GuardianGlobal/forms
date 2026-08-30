@@ -21,18 +21,6 @@ export class EmployeeInfoRepository {
 		return result.rows.map((row) => row.employee_id);
 	}
 
-	async insertEmployeeId(employeeId: string): Promise<void> {
-		await this.pool.query(
-			`
-				INSERT INTO public.employees (
-					employee_id,
-					created_at
-				)
-				VALUES ($1, NOW())
-			`,
-			[employeeId],
-		);
-	}
 	async insertEmployeeRecord(
 		employeeId: string,
 		employee: EmployeeInfoSubmission,
@@ -41,10 +29,12 @@ export class EmployeeInfoRepository {
 			`
 				INSERT INTO public.employees (
 					employee_id,
-					first_name, 
+					job_title,
+					first_name,
 					last_name,
 					preferred_name,
 					employment_status,
+					employment_type,
 					gender,
 					email,
 					phone_e164,
@@ -56,14 +46,21 @@ export class EmployeeInfoRepository {
 					created_at,
 					updated_at
 				)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+				VALUES (
+					$1, $2, $3, $4, $5,
+					$6, $7, $8, $9, $10,
+					$11, $12, $13, $14, $15,
+					NOW(), NOW()
+				)
 			`,
 			[
 				employeeId,
+				employee.jobTitle,
 				employee.firstName,
 				employee.lastName,
 				employee.preferredName,
 				employee.employmentStatus,
+				employee.employmentType,
 				employee.gender,
 				employee.email,
 				employee.phoneNumber,

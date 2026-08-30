@@ -4,7 +4,9 @@ import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import { SensitiveClient, SensitivePoolManager } from '#src/db/sensitive-client.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import { SubmissionOrchestrator } from '#src/submission-orchestrator/submission-orchestrator.module.js';
+import type { DocumentsManager } from '#src/document-manager/documents-manager.module.js';
+import type { EmployeeDocumentRetrievalService } from '#src/document-manager/employee-document-retrieval-service.module.js';
+import { OnboardingSubmissionOrchestrator } from '#src/submission-orchestrator/onboarding-submission-orchestrator.module.js';
 import {
 	employeeInfoSubmissionSchema,
 	type EmployeeInfoSubmission,
@@ -29,11 +31,14 @@ interface SensitiveEmployeeRow extends QueryResultRow {
 
 const submissions: EmployeeInfoSubmission[] = [
 	{
+		agencyName: 'Guardian Home Care',
 		agencyId: 'guardian',
 		firstName: 'Zara',
 		lastName: 'Quartz',
 		preferredName: null,
+		jobTitle: 'PCA',
 		employmentStatus: 'active',
+		employmentType: 'W_2',
 		gender: 'F',
 		dateOfBirth: '1990-01-02',
 		socialSecurityNumber: '123-45-6789',
@@ -46,11 +51,14 @@ const submissions: EmployeeInfoSubmission[] = [
 		zipCode: '46204',
 	},
 	{
+		agencyName: 'Guardian Home Care',
 		agencyId: 'guardian',
 		firstName: 'Yves',
 		lastName: 'Nimbus',
 		preferredName: 'Yve',
+		jobTitle: 'PCA',
 		employmentStatus: 'starting',
+		employmentType: 'W_2',
 		gender: 'M',
 		dateOfBirth: '1988-02-29',
 		socialSecurityNumber: '234-56-7890',
@@ -63,11 +71,14 @@ const submissions: EmployeeInfoSubmission[] = [
 		zipCode: '46205',
 	},
 	{
+		agencyName: 'Guardian Home Care',
 		agencyId: 'guardian',
 		firstName: 'Xena',
 		lastName: 'Maple',
 		preferredName: null,
+		jobTitle: 'PCA',
 		employmentStatus: 'inactive',
+		employmentType: 'W_2',
 		gender: null,
 		dateOfBirth: '1985-12-31',
 		socialSecurityNumber: '345-67-8901',
@@ -150,15 +161,19 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 					const repository = new EmployeeInfoRepository(publicPool);
 
 					for (const submission of submissions) {
-						const idGenerator = new IdGeneratorService(
-							sensitiveClient,
-							submission,
-							repository,
-						);
-						const orchestrator = new SubmissionOrchestrator(
+						const idGenerator = new IdGeneratorService(sensitiveClient, repository);
+						const documentsManager = {
+							initializeEmployeeRequirements: vi.fn().mockResolvedValue([]),
+						} as unknown as DocumentsManager;
+						const retrievalService = {
+							buildRequirementsFormBatch: vi.fn().mockResolvedValue(undefined),
+						} as unknown as EmployeeDocumentRetrievalService;
+						const orchestrator = new OnboardingSubmissionOrchestrator(
 							sensitiveClient,
 							idGenerator,
 							repository,
+							documentsManager,
+							retrievalService,
 						);
 
 						await orchestrator.handleSubmission(submission);

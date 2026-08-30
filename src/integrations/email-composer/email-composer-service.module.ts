@@ -11,12 +11,21 @@ import type {
 	SignatureSection,
 	SummarySection,
 } from './email-composer-service.schema.js';
+import { OndboardingFormsProvider } from '../onboarding-forms-provider.module.js';
+import { Errors } from '#src/http/errors.js';
 
 export class EmailComposerService {
-	constructor(private readonly messageRepo: EmailMessageRepository) {}
+	constructor(
+		private readonly messageRepo: EmailMessageRepository,
+		private readonly formsApi: OndboardingFormsProvider,
+	) {}
 
 	public composeEmail = async (employeeId: string): Promise<EmailMessage> => {
-		const context = await this.messageRepo.getContext(employeeId);
+		const formCompletionUrl = await this.formsApi.getFormsUrl(employeeId);
+		const context = await this.messageRepo.getContext(employeeId, formCompletionUrl);
+		if (!context) {
+			throw Errors.notFound();
+		}
 		const composition = this.createComposition();
 		return this.renderEmail(context, composition);
 	};

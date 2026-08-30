@@ -4,7 +4,7 @@ import { postEmployeeInfo } from '#src/routes/employee-info/post-employee-info.r
 import { postEmployeeDocuments } from '#src/routes/employee-documents.route.js';
 import { getMain } from '#src/routes/main.route.js';
 export { publicPoolManager, sensitivePoolManager } from '#src/app/dependencies.js';
-
+import { z, type ZodSafeParseResult } from 'zod';
 export const app = express();
 
 app.use(express.json());

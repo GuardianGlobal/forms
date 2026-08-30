@@ -40,8 +40,11 @@ SELECT
 BEGIN;
 
 \ir schema/010_create_schemas.sql
-\ir schema/020_create_requirement_types.sql
-\ir schema/021_create_employees.sql
+\ir schema/013_create_job_titles.sql
+\ir schema/011_create_employees.sql
+\ir schema/012_create_requirement_types.sql
+\ir schema/015_create_requirement_configs.sql
+\ir schema/014_create_job_title_requirements.sql
 \ir schema/022_create_employment_periods.sql
 \ir schema/023_create_employee_external_identifiers.sql
 \ir schema/024_create_employee_requirements.sql
