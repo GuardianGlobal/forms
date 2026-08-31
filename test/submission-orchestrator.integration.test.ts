@@ -2,7 +2,8 @@
 import type { Pool, QueryResultRow } from 'pg';
 import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import { SensitiveClient, SensitivePoolManager } from '#src/db/sensitive-client.module.js';
+import { SensitiveClient } from '#src/db/sensitive-client.module.js';
+import { SensitivePoolManager } from '#src/db/sensitive-pool-manager.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import type { DocumentsManager } from '#src/document-manager/documents-manager.module.js';
 import type { EmployeeDocumentRetrievalService } from '#src/document-manager/employee-document-retrieval-service.module.js';

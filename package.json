@@ -6,6 +6,8 @@
 	"scripts": {
 		"dev": "tsx watch --env-file=.env ./src/app/server.ts",
 		"compile": "npx tsc --noEmit",
+		"compile:test": "npx tsc --noEmit -p test/tsconfig.json",
+		"typecheck": "npm run compile && npm run compile:test",
 		"test": "vitest",
 		"test:integration": "RUN_DB_INTEGRATION_TESTS=true node --env-file=.env ./node_modules/vitest/vitest.mjs --run test/submission-orchestrator.integration.test.ts",
 		"test:watch": "vitest watch",
