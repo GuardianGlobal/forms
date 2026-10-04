@@ -1,5 +1,5 @@
 import { app } from '#src/app.js';
-import { publicPoolManager, sensitivePoolManager } from '#src/app/dependencies.js';
+import { clientPoolManager } from '#src/app/dependencies.js';
 import { gracefulShutdown } from '#src/app/graceful-shutdown.js';
 
 const hostname = process.env.HOST;
@@ -11,7 +11,7 @@ export const server = app.listen({ hostname, port }, () =>
 
 const shutdown = gracefulShutdown({
 	server,
-	poolManagers: [publicPoolManager, sensitivePoolManager],
+	poolManagers: [clientPoolManager],
 });
 
 process.on('SIGTERM', shutdown);

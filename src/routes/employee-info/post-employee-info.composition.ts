@@ -9,54 +9,23 @@ import {
 	EmployeeContactProvider,
 	type EmployeeInfo,
 } from '#src/integrations/employee-contact-provider.module.js';
-import { EmailMessageRepository } from '#src/db/email-message-repository.module.js';
+import { EmailMessageRepository } from '#src/db/email-message-repo/email-message-repository.module.js';
 import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
 import { OndboardingFormsProvider } from '#src/integrations/onboarding-forms-provider.module.js';
 import { GmailAdapter } from '#src/integrations/gmail/gmail-adapter.module.js';
 import { resolveGmailCredentials } from '#src/integrations/gmail/resolve-gmail-credentials.js';
-import { Pool } from 'pg';
-import { SensitiveClient } from '#src/db/sensitive-client.module.js';
+import { PoolClient } from 'pg';
+import { Queue } from 'bullmq';
 
-export function createOnboardingOrchestrator(deps: {
-	employee: EmployeeInfoSubmission;
-	publicPool: Pool;
-	sensitiveClient: SensitiveClient;
-}): OnboardingSubmissionOrchestrator {
-	const employeeInfoRepo = new EmployeeInfoRepository(deps.publicPool);
-	// Gmail
-	const gmail = new GmailAdapter(resolveGmailCredentials());
-	const employeeInfo: EmployeeInfo = {
-		firstName: deps.employee.firstName,
-		email: deps.employee.email,
-	};
-	const contactApi = new EmployeeContactProvider(employeeInfo, gmail);
-	const emailMessageRepository = new EmailMessageRepository(
-		{
-			name: deps.employee.agencyName,
-			agencyId: deps.employee.agencyId,
-		},
-		deps.publicPool,
-	);
-	// SignNow
-	const onboardingFormsService = new OndboardingFormsProvider();
-	const emailComposer = new EmailComposerService(emailMessageRepository, onboardingFormsService);
-
-	const retrievalService = new EmployeeDocumentRetrievalService(
-		contactApi,
-		onboardingFormsService,
-		emailComposer,
-	);
-	// documents manager
-	const docuemntsRepo = new EmployeeDocumentsRepository(deps.publicPool);
-	const documentsManager = new DocumentsManager(docuemntsRepo);
-	// id generator
-	const idGenerator = new IdGeneratorService(deps.sensitiveClient, employeeInfoRepo);
-
+export function createOnboardingOrchestrator(
+	databaseClient: PoolClient,
+	onboardingCompletion: Queue,
+): OnboardingSubmissionOrchestrator {
+	const employeeInfoRepo = new EmployeeInfoRepository(databaseClient);
+	const idGenerator = new IdGeneratorService(employeeInfoRepo);
 	return new OnboardingSubmissionOrchestrator(
-		deps.sensitiveClient,
+		onboardingCompletion,
 		idGenerator,
 		employeeInfoRepo,
-		documentsManager,
-		retrievalService,
 	);
 }

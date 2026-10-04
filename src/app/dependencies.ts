@@ -1,6 +1,9 @@
-import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
-import { SensitivePoolManager } from '#src/db/sensitive-pool-manager.module.js';
-import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
+import { ClientPoolManager } from '#src/db/client-pool-manager.module.js';
+import { getRedisConnection } from '#src/redis/get-redis-connection.js';
+import { Queue } from 'bullmq';
 
-export const publicPoolManager = new AgencyPoolManager(resolveDbClientConfig);
-export const sensitivePoolManager = new SensitivePoolManager(resolveDbClientConfig);
+export const clientPoolManager = new ClientPoolManager();
+
+export const onboardingCompletion = new Queue('onboarding', {
+	connection: getRedisConnection(),
+});

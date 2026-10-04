@@ -2,7 +2,6 @@
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import { employeeInfoSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
 
 const agencyId = 'guardian';
 
@@ -30,15 +29,15 @@ describe('IdGeneratorService', () => {
 		updatedAt: '2018-06-05T21:20:31Z',
 	});
 
-	let idExists: ReturnType<typeof vi.fn<SensitiveClient['idExists']>>;
+	let idExists: ReturnType<typeof vi.fn<EmployeeInfoRepository['idExists']>>;
 	let getEmployeeIds: ReturnType<typeof vi.fn<EmployeeInfoRepository['getEmployeeIds']>>;
 	let idService: IdGeneratorService;
 
 	beforeEach(() => {
-		idExists = vi.fn<SensitiveClient['idExists']>().mockResolvedValue(null);
+		idExists = vi.fn<EmployeeInfoRepository['idExists']>().mockResolvedValue(null);
 		getEmployeeIds = vi.fn<EmployeeInfoRepository['getEmployeeIds']>().mockResolvedValue([]);
 
-		idService = new IdGeneratorService({ idExists }, { getEmployeeIds });
+		idService = new IdGeneratorService({ idExists, getEmployeeIds } as unknown as EmployeeInfoRepository);
 	});
 
 	describe('generateBaseId', () => {

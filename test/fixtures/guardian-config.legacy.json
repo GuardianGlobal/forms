@@ -1,0 +1,555 @@
+{
+	"agencyID": "guardian",
+	"operationId": "838dc738-e0cf-4cc9-8545-30a089fa13bc",
+	"status": "ACTIVE",
+	"jobTitles": [
+		"DoN",
+		"Coordinator",
+		"RN",
+		"HHA",
+		"PCA",
+		"Owner",
+		"Executive",
+		"VA",
+		"Admin",
+		"Contractor"
+	],
+	"baseRequirements": [
+		{
+			"name": "Social Security Card",
+			"isFullyAutomated": true,
+			"isDocument": true,
+			"isInternal": false,
+			"needsSignature": false,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": true,
+			"isSensitive": true
+		},
+		{
+			"name": "ID",
+			"isFullyAutomated": true,
+			"isDocument": true,
+			"isInternal": false,
+			"needsSignature": false,
+			"canExpire": true,
+			"needsInPerson": false,
+			"requiredByDefault": true,
+			"isSensitive": true
+		},
+		{
+			"name": "Employee Info",
+			"isFullyAutomated": true,
+			"isDocument": true,
+			"isInternal": false,
+			"needsSignature": false,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": true,
+			"isSensitive": true
+		},
+		{
+			"name": "Handbook Acknowledgement",
+			"isFullyAutomated": true,
+			"isDocument": true,
+			"isInternal": false,
+			"needsSignature": true,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": true,
+			"isSensitive": false
+		},
+		{
+			"name": "I-9",
+			"isFullyAutomated": true,
+			"isDocument": true,
+			"isInternal": false,
+			"needsSignature": true,
+			"canExpire": false,
+			"needsInPerson": true,
+			"requiredByDefault": false,
+			"isSensitive": true
+		},
+		{
+			"name": "Onboarding Document",
+			"isFullyAutomated": true,
+			"isDocument": false,
+			"isInternal": false,
+			"needsSignature": false,
+			"canExpire": false,
+			"needsInPerson": true,
+			"requiredByDefault": true,
+			"isSensitive": true
+		},
+		{
+			"name": "Background Check",
+			"isFullyAutomated": false,
+			"isInternal": true,
+			"isDocument": true,
+			"needsSignature": true,
+			"canExpire": true,
+			"needsInPerson": false,
+			"requiredByDefault": false,
+			"isSensitive": true
+		},
+		{
+			"name": "Direct Deposit",
+			"isFullyAutomated": true,
+			"isInternal": false,
+			"isDocument": true,
+			"needsSignature": true,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": false,
+			"isSensitive": true
+		},
+		{
+			"name": "Orientation",
+			"isFullyAutomated": false,
+			"isInternal": false,
+			"isDocument": false,
+			"needsSignature": true,
+			"canExpire": false,
+			"needsInPerson": true,
+			"requiredByDefault": true,
+			"isSensitive": false
+		},
+		{
+			"name": "GeoH Onboarding",
+			"isFullyAutomated": false,
+			"isInternal": false,
+			"isDocument": false,
+			"needsSignature": false,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": false,
+			"isSensitive": true
+		},
+		{
+			"name": "ADP Onboarding",
+			"isFullyAutomated": false,
+			"isInternal": false,
+			"isDocument": false,
+			"needsSignature": false,
+			"canExpire": false,
+			"needsInPerson": false,
+			"requiredByDefault": false,
+			"isSensitive": true
+		},
+		{
+			"name": "OIG Exclusions",
+			"isFullyAutomated": false,
+			"isInternal": true,
+			"isDocument": true,
+			"needsSignature": false,
+			"canExpire": true,
+			"needsInPerson": false,
+			"requiredByDefault": true,
+			"isSensitive": false
+		}
+	],
+	"uniqueRequirements": [
+		{
+			"jobTitle": "DoN",
+			"requirements": [
+				{
+					"name": "CPR Cert",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "TB Test",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				},
+				{
+					"name": "Skills Test",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "RN License",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "Degree",
+					"isFullyAutomated": false,
+					"isDocument": true,
+					"isInternal": true,
+					"needsSignature": false,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "Coordinator",
+			"requirements": [
+				{
+					"name": "CPR Cert",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "TB Test",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				},
+				{
+					"name": "Skills Test",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "RN License",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "Degree",
+					"isFullyAutomated": false,
+					"isDocument": true,
+					"isInternal": true,
+					"needsSignature": false,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "RN",
+			"requirements": [
+				{
+					"name": "CPR Cert",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "TB Test",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				},
+				{
+					"name": "Skills Test",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "RN License",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "Degree",
+					"isFullyAutomated": false,
+					"isDocument": true,
+					"isInternal": true,
+					"needsSignature": false,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "HHA",
+			"requirements": [
+				{
+					"name": "CPR Cert",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "TB Test",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				},
+				{
+					"name": "Skills Test",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "CNA License",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "PCA",
+			"requirements": [
+				{
+					"name": "CPR Cert",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "TB Test",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": true,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				},
+				{
+					"name": "Skills Test",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": false
+				},
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "Owner",
+			"requirements": [
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "Executive",
+			"requirements": [
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "VA",
+			"requirements": [
+				{
+					"name": "Wise",
+					"isFullyAutomated": false,
+					"isDocument": false,
+					"isInternal": true,
+					"needsSignature": false,
+					"canExpire": false,
+					"needsInPerson": true,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "Admin",
+			"requirements": [
+				{
+					"name": "W-4",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": true,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		},
+		{
+			"jobTitle": "Contractor",
+			"requirements": [
+				{
+					"name": "W-9",
+					"isFullyAutomated": true,
+					"isDocument": true,
+					"isInternal": false,
+					"needsSignature": false,
+					"canExpire": false,
+					"needsInPerson": false,
+					"requiredByDefault": false,
+					"isSensitive": true
+				}
+			]
+		}
+	]
+}

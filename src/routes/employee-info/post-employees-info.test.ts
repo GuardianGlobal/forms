@@ -1,121 +1,132 @@
-/// <reference types="vitest/globals" />
-import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
-import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
-import { data } from '#src/submissions/data.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { NextFunction, Request, Response } from 'express';
+import type { PoolClient } from 'pg';
+import { clientPoolManager, onboardingCompletion } from '#src/app/dependencies.js';
+import { errorHandler } from '#src/http/error-handler.middleware.js';
+import { postEmployeeInfo } from './post-employee-info.route.js';
+import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
 
-const pool = await new AgencyPoolManager(resolveDbClientConfig).getPool('guardian');
-// describe, it, expect
-describe('/employees', () => {
-	let response: globalThis.Response;
-	let body: string;
-	let mockJsonIndex: number = 0;
-	let mockJson;
+vi.mock('#src/app/dependencies.js', () => ({
+	clientPoolManager: { withClient: vi.fn() },
+	onboardingCompletion: { add: vi.fn() },
+}));
+vi.mock('./post-employee-info.composition.js', () => ({
+	createOnboardingOrchestrator: vi.fn(),
+}));
 
-	beforeEach(async () => {
-		mockJson = data[mockJsonIndex];
-		response = await fetch('http://localhost:3000/employees', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(mockJson),
+const submission = {
+	agencyId: 'guardian',
+	agencyName: 'Guardian Home Care',
+	employmentType: 'W_2',
+	jobTitle: 'PCA',
+	firstName: 'Test',
+	lastName: 'Employee',
+	preferredName: null,
+	employmentStatus: 'active',
+	gender: 'F',
+	dateOfBirth: '1990-01-02',
+	socialSecurityNumber: '123-45-6789',
+	email: 'employee@example.test',
+	phoneNumber: '+13175550101',
+	address1: '101 Test Street',
+	address2: null,
+	city: 'Indianapolis',
+	stateCode: 'IN',
+	zipCode: '46204',
+};
+
+function responseFixture() {
+	const response = {
+		locals: { requestId: 'test-request' },
+		writeHead: vi.fn(),
+		end: vi.fn(),
+		status: vi.fn().mockReturnThis(),
+		json: vi.fn(),
+	};
+	return { response: response as unknown as Response, spies: response };
+}
+
+async function submit(body: unknown, response: Response): Promise<void> {
+	const request = { method: 'POST', url: '/employee-info', body } as Request;
+	try {
+		await postEmployeeInfo(request, response);
+	} catch (error) {
+		errorHandler(error, request, response, vi.fn() as NextFunction);
+	}
+}
+
+describe('POST /employee-info', () => {
+	beforeEach(() => {
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+		vi.resetAllMocks();
+	});
+
+	it('orchestrates a valid submission using the checked-out client before returning 201', async () => {
+		const { response, spies } = responseFixture();
+		const client = {} as PoolClient;
+		const handleSubmission = vi.fn<ReturnType<typeof createOnboardingOrchestrator>['handleSubmission']>(async (_submission) => {
+			expect(spies.end).not.toHaveBeenCalled();
 		});
-		body = await response.text();
+		vi.mocked(createOnboardingOrchestrator).mockReturnValue({
+			handleSubmission,
+		} as unknown as ReturnType<typeof createOnboardingOrchestrator>);
+		vi.mocked(clientPoolManager.withClient).mockImplementation(async (_agency, operation) => operation(client));
+
+		await submit(submission, response);
+
+		expect(clientPoolManager.withClient).toHaveBeenCalledWith('guardian', expect.any(Function));
+		expect(createOnboardingOrchestrator).toHaveBeenCalledWith(client, onboardingCompletion);
+		expect(handleSubmission).toHaveBeenCalledWith(submission);
+		expect(spies.writeHead).toHaveBeenCalledWith(201);
+		expect(spies.end).toHaveBeenCalledWith('Accepted');
 	});
 
-	afterEach(async () => {
-		mockJsonIndex++;
-		const employeeId: string = '37951106000';
-		await pool.query(
-			`
-            DELETE FROM employees WHERE employee_id = $1;
-        `,
-			[employeeId],
-		);
-	});
 	it.each([
-		{
-			description: 'stores data in database',
-			status: 201,
-			message: 'Data stored in DB', //'Key (employee_id)=(37951106001) already exists.',
-		},
-		{
-			description: 'causes 400 response because of bad agencyId',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of wrong data for string',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of too long string',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid preferredName',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid employmentStatus',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid gender',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of missing dateOfBirth',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid socialSecurityNumber',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid email',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid phoneNumber',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of empty address1',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid address2',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of empty city',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid stateCode',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-		{
-			description: 'causes 400 response because of invalid zipCode',
-			status: 400,
-			message: 'Check request body and retry',
-		},
-	])('test data $description', ({ status, message }) => {
-		expect(response.status).toBe(status);
-		expect(body).toBe(message);
+		['agencyId', ''],
+		['firstName', 123],
+		['lastName', 'x'.repeat(51)],
+		['preferredName', 123],
+		['employmentStatus', ''],
+		['gender', 'invalid'],
+		['dateOfBirth', undefined],
+		['socialSecurityNumber', 'invalid'],
+		['email', 'invalid'],
+		['phoneNumber', 'invalid'],
+		['address1', ''],
+		['address2', 123],
+		['city', ''],
+		['stateCode', 'Indiana'],
+		['zipCode', '1'],
+	])('rejects invalid %s before acquiring a database client', async (field, value) => {
+		const { response, spies } = responseFixture();
+
+		await submit({ ...submission, [field as string]: value }, response);
+
+		expect(spies.status).toHaveBeenCalledWith(422);
+		expect(spies.json).toHaveBeenCalledWith({
+			error: {
+				code: 'INVALID_REQUEST_BODY',
+				message: 'The request body is invalid.',
+				requestId: 'test-request',
+			},
+		});
+		expect(clientPoolManager.withClient).not.toHaveBeenCalled();
+		expect(createOnboardingOrchestrator).not.toHaveBeenCalled();
+	});
+
+	it('returns an error rather than accepting a submission when the database operation fails', async () => {
+		const { response, spies } = responseFixture();
+		vi.mocked(clientPoolManager.withClient).mockRejectedValue(new Error('Database unavailable'));
+
+		await submit(submission, response);
+
+		expect(spies.status).toHaveBeenCalledWith(500);
+		expect(spies.end).not.toHaveBeenCalled();
 	});
 });

@@ -17,12 +17,18 @@
 1. Get documents list from requirement_types table in PostgreSQL. ✅
 2. Add all document types to requirement_types table in PostgreSQL. ✅
 3. Migrate to db v2, drop db 1. ## NO LIVE DATA YET ## ✅
+4. Upload ONet Job Codes into job_titles
 
 ## Modules
 
 1. EmployeeContactService ( stubbed )
 2. OnboardingFormsService ( stubbed )
 3. EmployeeDocumentsRepository ( stubbed )
+
+## Employee ID collisions and submission idempotency
+
+- [ ] Fix candidate ID recalculation in `src/id/id-generator-service.module.ts`. `newId` is currently calculated before the loop, so incrementing `collisionSequence` does not update the candidate being checked or returned. Recalculate the candidate after each increment and continue until an unused ID is found. Cover multiple consecutive collisions with different SSNs in tests.
+- [ ] Treat a matching employee ID and SSN as an idempotent duplicate submission instead of throwing a conflict. Return the existing employee ID with an explicit duplicate outcome so the submission orchestrator skips insertion and downstream work, including queue jobs and emails. Test that retrying the same submission does not repeat those effects.
 
 ## Unit Testing
 

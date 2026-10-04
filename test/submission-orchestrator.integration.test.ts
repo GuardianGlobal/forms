@@ -1,18 +1,16 @@
 /// <reference types="vitest/globals" />
 import type { Pool, QueryResultRow } from 'pg';
-import { AgencyPoolManager } from '#src/db/agency-pool-manager.module.js';
+import { randomBytes } from 'node:crypto';
+import { DisposablePostgres } from './support/disposable-postgres.js';
+import { encryptSsn } from '#src/util/encrypt-ssn.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import { SensitiveClient } from '#src/db/sensitive-client.module.js';
-import { SensitivePoolManager } from '#src/db/sensitive-pool-manager.module.js';
+import type { Queue } from 'bullmq';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import type { DocumentsManager } from '#src/document-manager/documents-manager.module.js';
-import type { EmployeeDocumentRetrievalService } from '#src/document-manager/employee-document-retrieval-service.module.js';
 import { OnboardingSubmissionOrchestrator } from '#src/submission-orchestrator/onboarding-submission-orchestrator.module.js';
 import {
 	employeeInfoSubmissionSchema,
 	type EmployeeInfoSubmission,
 } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import { resolveDbClientConfig } from '#src/util/resolve-db-client-config.js';
 
 interface PublicEmployeeRow extends QueryResultRow {
 	employee_id: string;
@@ -93,160 +91,185 @@ const submissions: EmployeeInfoSubmission[] = [
 	},
 ].map((submission) => employeeInfoSubmissionSchema.parse(submission));
 
-const agencyId = 'guardian';
 const testEmails = submissions.map(({ email }) => email);
 const integrationTestsEnabled = process.env.RUN_DB_INTEGRATION_TESTS === 'true';
 
-async function findTestEmployeeIds(pool: Pool): Promise<string[]> {
-	const result = await pool.query<{ employee_id: string }>(
-		`
-			SELECT employee_id
-			FROM public.employees
-			WHERE email = ANY($1::text[])
-		`,
-		[testEmails],
-	);
-
-	return result.rows.map(({ employee_id }) => employee_id);
-}
-
-async function removeTestEmployees(
-	publicPool: Pool,
-	sensitivePoolManager: SensitivePoolManager,
-): Promise<void> {
-	const employeeIds = await findTestEmployeeIds(publicPool);
-	if (employeeIds.length === 0) {
-		return;
-	}
-
-	// The foreign-key child rows must be removed first.
-	await sensitivePoolManager.withClient(agencyId, async (client) => {
-		await client.query(
-			'DELETE FROM sensitive.employee_sensitive_data WHERE employee_id = ANY($1::text[])',
-			[employeeIds],
-		);
-	});
-	await publicPool.query('DELETE FROM public.employees WHERE employee_id = ANY($1::text[])', [
-		employeeIds,
-	]);
-}
-
-function assertRequiredEnvironment(): void {
-	const requiredVariables = [
-		'DB_PWD',
-		'DB_SENSITIVE_PWD',
-		'SSN_ENCRYPTION_KEY_BASE64',
-		'SSN_ENCRYPTION_KEY_VERSION',
-	] as const;
-	const missingVariables = requiredVariables.filter((name) => !process.env[name]?.trim());
-
-	if (missingVariables.length > 0) {
-		throw new Error(`Missing integration-test environment variables: ${missingVariables.join(', ')}`);
-	}
-}
-
 describe.skipIf(!integrationTestsEnabled)('employee submission database integration', () => {
-	it(
-		'validates and stores three submissions in both employee tables',
-		async () => {
-			assertRequiredEnvironment();
-			const publicPoolManager = new AgencyPoolManager(resolveDbClientConfig);
-			const sensitivePoolManager = new SensitivePoolManager(resolveDbClientConfig);
-			const publicPool = await publicPoolManager.getPool(agencyId);
+	let database: DisposablePostgres | undefined;
+	let publicPool: Pool;
 
-			try {
-				await removeTestEmployees(publicPool, sensitivePoolManager);
+	beforeAll(async () => {
+		vi.stubEnv('SSN_ENCRYPTION_KEY_BASE64', randomBytes(32).toString('base64'));
+		vi.stubEnv('SSN_ENCRYPTION_KEY_VERSION', 'integration-test');
+		database = await DisposablePostgres.start();
+		publicPool = database.getPool();
+	}, 30_000);
 
-				await sensitivePoolManager.withClient(agencyId, async (pgClient) => {
-					const sensitiveClient = new SensitiveClient(pgClient);
-					const repository = new EmployeeInfoRepository(publicPool);
+	afterAll(async () => {
+		try {
+			await database?.close();
+		} finally {
+			vi.unstubAllEnvs();
+		}
+	});
 
-					for (const submission of submissions) {
-						const idGenerator = new IdGeneratorService(sensitiveClient, repository);
-						const documentsManager = {
-							initializeEmployeeRequirements: vi.fn().mockResolvedValue([]),
-						} as unknown as DocumentsManager;
-						const retrievalService = {
-							buildRequirementsFormBatch: vi.fn().mockResolvedValue(undefined),
-						} as unknown as EmployeeDocumentRetrievalService;
-						const orchestrator = new OnboardingSubmissionOrchestrator(
-							sensitiveClient,
-							idGenerator,
-							repository,
-							documentsManager,
-							retrievalService,
-						);
+	it('passes a schema-validated EmployeeInfoSubmission as the JSONB orchestration argument', async () => {
+		const employee = employeeInfoSubmissionSchema.parse({
+			...submissions[0],
+			email: 'jsonb.employee@example.test',
+		});
+		const employeeId = '12345678901';
+		const encrypted = encryptSsn(employee.socialSecurityNumber);
 
-						await orchestrator.handleSubmission(submission);
-					}
+		const result = await publicPool.query<{ employee_id: string }>(
+			'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8) AS employee_id',
+			[
+				employeeId,
+				employee,
+				'2026-01-01',
+				employee.dateOfBirth,
+				encrypted.ciphertext,
+				encrypted.nonce,
+				encrypted.keyVersion,
+				employee.socialSecurityNumber.slice(-4),
+			],
+		);
 
-					const publicResult = await publicPool.query<PublicEmployeeRow>(
-						`
-							SELECT employee_id, first_name, last_name, email
-							FROM public.employees
-							WHERE email = ANY($1::text[])
-							ORDER BY email
-						`,
-						[testEmails],
-					);
-					expect(publicResult.rows).toHaveLength(3);
+		expect(result.rows[0].employee_id).toBe(employeeId);
+		const { rows: [stored] } = await publicPool.query(`
+			SELECT e.first_name, e.last_name, e.email, e.job_title,
+				p.start_date::text, s.date_of_birth::text,
+				s.ssn_ciphertext, s.ssn_nonce, s.ssn_key_version, s.ssn_last_four
+			FROM public.employees e
+			JOIN public.employment_periods p USING (employee_id)
+			JOIN sensitive.employee_sensitive_data s USING (employee_id)
+			WHERE e.employee_id = $1
+		`, [employeeId]);
+		expect(stored).toEqual({
+			first_name: employee.firstName,
+			last_name: employee.lastName,
+			email: employee.email,
+			job_title: employee.jobTitle,
+			start_date: '2026-01-01',
+			date_of_birth: employee.dateOfBirth,
+			ssn_ciphertext: encrypted.ciphertext,
+			ssn_nonce: encrypted.nonce,
+			ssn_key_version: encrypted.keyVersion,
+			ssn_last_four: employee.socialSecurityNumber.slice(-4),
+		});
+	});
 
-					const publicRowsByEmail = new Map(
-						publicResult.rows.map((row) => [row.email, row]),
-					);
-					for (const submission of submissions) {
-						expect(publicRowsByEmail.get(submission.email)).toMatchObject({
-							first_name: submission.firstName,
-							last_name: submission.lastName,
-							email: submission.email,
-						});
-					}
+	it('returns sorted employee IDs for a prefix and an empty array for no matches', async () => {
+		const employee = employeeInfoSubmissionSchema.parse({
+			...submissions[0],
+			email: 'id.lookup@example.test',
+		});
+		const encrypted = encryptSsn(employee.socialSecurityNumber);
+		for (const employeeId of ['98765432002', '98765432001']) {
+			await publicPool.query(
+				'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)',
+				[employeeId, employee, '2026-01-01', employee.dateOfBirth,
+					encrypted.ciphertext, encrypted.nonce, encrypted.keyVersion,
+					employee.socialSecurityNumber.slice(-4)],
+			);
+		}
 
-					const employeeIds = publicResult.rows.map(({ employee_id }) => employee_id);
-					const sensitiveResult = await pgClient.query<SensitiveEmployeeRow>(
-						`
-							SELECT
-								employee_id,
-								date_of_birth::text,
-								ssn_last_four,
-								ssn_key_version,
-								octet_length(ssn_ciphertext) AS ciphertext_length,
-								octet_length(ssn_nonce) AS nonce_length
-							FROM sensitive.employee_sensitive_data
-							WHERE employee_id = ANY($1::text[])
-							ORDER BY employee_id
-						`,
-						[employeeIds],
-					);
-					expect(sensitiveResult.rows).toHaveLength(3);
+		const client = await publicPool.connect();
+		try {
+			await client.query('SET ROLE g_forms_integration_runtime');
+			const matching = await client.query<{ ids: string[] }>(
+				'SELECT api.get_employee_ids($1) AS ids', ['98765432'],
+			);
+			const empty = await client.query<{ ids: string[] }>(
+				'SELECT api.get_employee_ids($1) AS ids', ['00000000'],
+			);
 
-					const sensitiveRowsById = new Map(
-						sensitiveResult.rows.map((row) => [row.employee_id, row]),
-					);
-					for (const submission of submissions) {
-						const publicRow = publicRowsByEmail.get(submission.email);
-						expect(publicRow).toBeDefined();
-						const sensitiveRow = sensitiveRowsById.get(publicRow!.employee_id);
-						expect(sensitiveRow).toMatchObject({
-							date_of_birth: submission.dateOfBirth,
-							ssn_last_four: submission.socialSecurityNumber.slice(-4),
-							ssn_key_version: process.env.SSN_ENCRYPTION_KEY_VERSION,
-							nonce_length: 12,
-						});
-						expect(sensitiveRow!.ciphertext_length).toBeGreaterThan(16);
+			expect(matching.rows[0].ids).toEqual(['98765432001', '98765432002']);
+			expect(empty.rows[0].ids).toEqual([]);
+			await expect(client.query('SELECT employee_id FROM public.employees'))
+				.rejects.toThrow('permission denied');
+		} finally {
+			await client.query('RESET ROLE');
+			client.release();
+		}
+	});
 
-						const decryptedRecord = await sensitiveClient.idExists(publicRow!.employee_id);
-						expect(decryptedRecord).toEqual({
-							id: publicRow!.employee_id,
-							ssn: submission.socialSecurityNumber,
-						});
-					}
-				});
-			} finally {
-				await removeTestEmployees(publicPool, sensitivePoolManager);
-				await Promise.all([publicPoolManager.endAll(), sensitivePoolManager.endAll()]);
+	it('validates and stores three submissions in both employee tables', async () => {
+		const pgClient = await publicPool.connect();
+		try {
+			const repository = new EmployeeInfoRepository(pgClient);
+
+			for (const submission of submissions) {
+				const idGenerator = new IdGeneratorService(repository);
+				const queue = { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queue;
+				const orchestrator = new OnboardingSubmissionOrchestrator(queue, idGenerator, repository);
+
+				await orchestrator.handleSubmission(submission);
 			}
-		},
-		20_000,
-	);
+
+			const publicResult = await publicPool.query<PublicEmployeeRow>(
+				`
+					SELECT employee_id, first_name, last_name, email
+					FROM public.employees
+					WHERE email = ANY($1::text[])
+					ORDER BY email
+				`,
+				[testEmails],
+			);
+			expect(publicResult.rows).toHaveLength(3);
+
+			const publicRowsByEmail = new Map(
+				publicResult.rows.map((row) => [row.email, row]),
+			);
+			for (const submission of submissions) {
+				expect(publicRowsByEmail.get(submission.email)).toMatchObject({
+					first_name: submission.firstName,
+					last_name: submission.lastName,
+					email: submission.email,
+				});
+			}
+
+			const employeeIds = publicResult.rows.map(({ employee_id }) => employee_id);
+			const sensitiveResult = await pgClient.query<SensitiveEmployeeRow>(
+				`
+					SELECT
+						employee_id,
+						date_of_birth::text,
+						ssn_last_four,
+						ssn_key_version,
+						octet_length(ssn_ciphertext) AS ciphertext_length,
+						octet_length(ssn_nonce) AS nonce_length
+					FROM sensitive.employee_sensitive_data
+					WHERE employee_id = ANY($1::text[])
+					ORDER BY employee_id
+				`,
+				[employeeIds],
+			);
+			expect(sensitiveResult.rows).toHaveLength(3);
+
+			const sensitiveRowsById = new Map(
+				sensitiveResult.rows.map((row) => [row.employee_id, row]),
+			);
+			for (const submission of submissions) {
+				const publicRow = publicRowsByEmail.get(submission.email);
+				expect(publicRow).toBeDefined();
+				const sensitiveRow = sensitiveRowsById.get(publicRow!.employee_id);
+				expect(sensitiveRow).toMatchObject({
+					date_of_birth: submission.dateOfBirth,
+					ssn_last_four: submission.socialSecurityNumber.slice(-4),
+					ssn_key_version: process.env.SSN_ENCRYPTION_KEY_VERSION,
+					nonce_length: 12,
+				});
+				expect(sensitiveRow!.ciphertext_length).toBeGreaterThan(16);
+
+				const decryptedRecord = await repository.idExists(publicRow!.employee_id);
+				expect(decryptedRecord).toEqual({
+					id: publicRow!.employee_id,
+					ssn: submission.socialSecurityNumber,
+				});
+			}
+		} finally {
+			pgClient.release();
+		}
+	}, 20_000);
 });

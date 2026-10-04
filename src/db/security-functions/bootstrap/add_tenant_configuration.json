@@ -1,0 +1,61 @@
+{
+	"id": "add_tenant_configuration",
+	"functions": [
+		{
+			"signature": "api.insert_requirement_config(jsonb)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.requirement_configs",
+					"privileges": ["SELECT", "INSERT"]
+				}
+			]
+		},
+		{
+			"signature": "api.insert_requirement_types(uuid, jsonb[])",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.requirement_types",
+					"privileges": ["INSERT"]
+				}
+			]
+		},
+		{
+			"signature": "api.insert_job_title_requirements(uuid, jsonb[])",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.requirement_types",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.job_title_requirements",
+					"privileges": ["INSERT"]
+				}
+			]
+		},
+		{
+			"signature": "api.add_tenant_configuration(jsonb)",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"function": "api.insert_requirement_config",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"function": "api.insert_requirement_types",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"function": "api.insert_job_title_requirements",
+					"privileges": ["EXECUTE"]
+				}
+			]
+		}
+	]
+}

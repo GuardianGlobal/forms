@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
 	type EmailContextRow,
 	EmailMessageRepository,
-} from '#src/db/email-message-repository.module.js';
+} from '#src/db/email-message-repo/email-message-repository.module.js';
 import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
 import type { EmailContext } from '#src/integrations/email-composer/email-composer-service.schema.js';
 import { OndboardingFormsProvider } from '../onboarding-forms-provider.module.js';
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
+const identificationRequirementTypeId = '00000000-0000-4000-8000-000000000001';
+const trainingRequirementTypeId = '00000000-0000-4000-8000-000000000002';
 const contextRows: { rows: EmailContextRow[] } = {
 	rows: [
 		{
@@ -16,7 +18,7 @@ const contextRows: { rows: EmailContextRow[] } = {
 
 			issueId: 'issue-1',
 			issueCode: 'EXPIRED',
-			requirementCode: 'IDENTIFICATION',
+			requirementTypeId: identificationRequirementTypeId,
 			requirementDisplayName: 'Identification',
 			textTemplate: 'Please replace your expired identification.',
 			htmlTemplate: '<strong>Please replace your expired identification.</strong>',
@@ -34,7 +36,7 @@ const contextRows: { rows: EmailContextRow[] } = {
 
 			issueId: 'issue-2',
 			issueCode: 'MISSING',
-			requirementCode: 'TRAINING_CERTIFICATE',
+			requirementTypeId: trainingRequirementTypeId,
 			requirementDisplayName: 'Training certificate',
 			textTemplate: 'Please submit your training certificate.',
 			htmlTemplate: null,
@@ -58,7 +60,7 @@ const context: EmailContext = {
 		{
 			issueId: 'issue-1',
 			issueCode: 'EXPIRED',
-			requirementCode: 'IDENTIFICATION',
+			requirementTypeId: identificationRequirementTypeId,
 			requirementDisplayName: 'Identification',
 			textTemplate: 'Please replace your expired identification.',
 			htmlTemplate: '<strong>Please replace your expired identification.</strong>',
@@ -70,7 +72,7 @@ const context: EmailContext = {
 		{
 			issueId: 'issue-2',
 			issueCode: 'MISSING',
-			requirementCode: 'TRAINING_CERTIFICATE',
+			requirementTypeId: trainingRequirementTypeId,
 			requirementDisplayName: 'Training certificate',
 			textTemplate: 'Please submit your training certificate.',
 			htmlTemplate: null,
@@ -90,7 +92,10 @@ const mockPool: MockPool = { query: vi.fn().mockResolvedValue(contextRows) };
 
 describe('EmailComposerService', () => {
 	const service = new EmailComposerService(
-		new EmailMessageRepository({ agencyId: 'agency-1', name: 'Guardian' }, mockPool as Pool),
+		new EmailMessageRepository(
+			{ agencyId: 'agency-1', name: 'Guardian' },
+			mockPool as PoolClient,
+		),
 		new OndboardingFormsProvider(),
 	);
 

@@ -8,7 +8,7 @@ export type RequirementIssueCode =
 export interface RequirementIssue {
 	issueId: string;
 	issueCode: RequirementIssueCode;
-	requirementCode: string;
+	requirementTypeId: string;
 	requirementDisplayName: string;
 	textTemplate: string;
 	htmlTemplate: string | null;

@@ -1,4 +1,4 @@
-import { EmailMessageRepository } from '#src/db/email-message-repository.module.js';
+import { EmailMessageRepository } from '#src/db/email-message-repo/email-message-repository.module.js';
 import { type EmailMessage } from '#src/integrations/email-adapter.schema.js';
 import { EmailCompositionKit as c } from './email-composition-kit.lib.js';
 import type {

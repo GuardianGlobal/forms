@@ -1,0 +1,16 @@
+{
+	"id": "employee_id_exists",
+	"functions": [
+		{
+			"signature": "api.employee_id_exists(text)",
+			"domain": "sensitive",
+			"expose": true,
+			"access": [
+				{
+					"table": "sensitive.employee_sensitive_data",
+					"privileges": ["SELECT"]
+				}
+			]
+		}
+	]
+}

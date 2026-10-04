@@ -1,0 +1,132 @@
+{
+	"id": "forms_initialize_employee_requirements",
+	"functions": [
+		{
+			"signature": "api.get_job_title_requirements(text)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.job_title_requirements",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_configs",
+					"privileges": ["SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.get_context(text)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.employees",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.employee_requirements",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_issues",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_types",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_issue_types",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_message_fragments",
+					"privileges": ["SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.populate_employee_requirement_issues(text,date)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.employee_requirements",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_issues",
+					"privileges": ["INSERT", "SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.build_form_component_manifest(text,uuid,timestamptz)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.employee_requirements",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_types",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_issues",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.form_components",
+					"privileges": ["INSERT", "SELECT"]
+				},
+				{
+					"table": "public.employee_forms",
+					"privileges": ["INSERT", "SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.initialize_employee_requirements(text,text,uuid,timestamptz)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.employees",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_configs",
+					"privileges": ["SELECT", "UPDATE"]
+				},
+				{
+					"table": "public.employee_requirements",
+					"privileges": ["INSERT", "SELECT"]
+				},
+				{
+					"function": "api.get_job_title_requirements(text)",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"function": "api.populate_employee_requirement_issues(text,date)",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"function": "api.get_context(text)",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"table": "public.employee_forms",
+					"privileges": ["SELECT"]
+				},
+				{
+					"function": "api.build_form_component_config(text,uuid,timestamptz)",
+					"privileges": ["EXECUTE"]
+				}
+			]
+		}
+	]
+}

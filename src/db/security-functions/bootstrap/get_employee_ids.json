@@ -1,0 +1,17 @@
+{
+	"id": "get-employee-ids",
+	"functions": [
+		{
+			"signature": "api.get_employee_ids(text)",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"table": "public.employees",
+					"privileges": ["SELECT"],
+					"columns": ["employee_id"]
+				}
+			]
+		}
+	]
+}

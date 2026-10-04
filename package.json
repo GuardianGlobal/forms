@@ -1,25 +1,30 @@
 {
 	"name": "forms",
+	"apiId": "d925ba71-603c-4e8f-a249-87c31d06fb52",
+	"dbFunctionFolder": "./src/db/security-functions",
 	"version": "1.0.0",
 	"description": "the forms repository for https://portal.myguardiancares.com",
-	"main": "index.js",
+	"main": "./dist/app.js",
 	"scripts": {
 		"dev": "tsx watch --env-file=.env ./src/app/server.ts",
-		"compile": "npx tsc --noEmit",
+		"compile": "./scripts/compile.sh",
 		"compile:test": "npx tsc --noEmit -p test/tsconfig.json",
 		"typecheck": "npm run compile && npm run compile:test",
-		"test": "vitest",
-		"test:integration": "RUN_DB_INTEGRATION_TESTS=true node --env-file=.env ./node_modules/vitest/vitest.mjs --run test/submission-orchestrator.integration.test.ts",
+		"test": "vitest run",
+		"build": "./scripts/build.sh",
+		"test:integration": "RUN_DB_INTEGRATION_TESTS=true vitest run test/submission-orchestrator.integration.test.ts",
 		"test:watch": "vitest watch",
 		"gmail:authorize": "tsx --env-file=.env scripts/authorize-gmail.ts",
-		"gmail:test": "tsx --env-file=.env scripts/send-gmail-test.ts"
+		"gmail:test": "tsx --env-file=.env scripts/send-gmail-test.ts",
+		"test:tenant": "vitest run test/tenant-config.schema.test.ts test/tenant-config.persistence.test.ts test/tenant-config.route.test.ts test/tenant-config.migration.test.ts",
+		"test:tenant:db": "RUN_DB_INTEGRATION_TESTS=true vitest run test/tenant-config.sql.integration.test.ts"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/GuardianGlobal/forms.git"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Cameron Davis",
 	"license": "ISC",
 	"type": "module",
 	"bugs": {
@@ -30,13 +35,18 @@
 		"@google-cloud/local-auth": "^3.0.1",
 		"@prisma/adapter-pg": "6.12.0",
 		"@prisma/client": "6.12.0",
+		"@types/redis": "^4.0.10",
+		"bcryptjs": "^3.0.3",
+		"bullmq": "^6.3.9",
 		"chalk": "^6.0.0",
 		"express": "^5.2.1",
 		"googleapis": "^176.0.0",
 		"pg": "8.23.0",
+		"redis": "^6.2.1",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
+		"@types/bcryptjs": "^2.4.6",
 		"@types/express": "^5.0.6",
 		"@types/node": "^26.2.0",
 		"@types/pg": "8.23.1",

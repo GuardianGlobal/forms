@@ -4,12 +4,12 @@ const zeroNineNumberSchema = z
 	.int()
 	.min(0)
 	.max(99)
-	.transform((n) => {
+	.transform((n: number) => {
 		const tens = Math.floor(n / 10);
 		const ones = n % 10;
 		return [tens, ones];
 	}); // 99 -> [9, 9]
-const zeroNineArraySchema = z.array(z.number().int().min(0).max(9)).length(2);
+const zeroNineArraySchema = z.array(z.number().int().min(0).max(9)).length(2); //
 type ZeroNineArray = z.output<typeof zeroNineNumberSchema>;
 
 const stringCharacterSchema = z.string().min(1);
@@ -24,7 +24,7 @@ const dateCodeSchema = z
 			context.addIssue(
 				'No matches found with regular expression:\n\t/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/',
 			);
-			throw new Error('invalid dateString');
+			return z.NEVER;
 		}
 		return {
 			year: Number(groups.year[2] + groups.year[3]), //94
@@ -36,7 +36,7 @@ const dateCodeSchema = z
 const employeeIdSchema = z
 	.string()
 	.trim()
-	.regex(/[0-9]{11}/);
+	.regex(/^[0-9]{11}$/);
 
 export {
 	zeroNineNumberSchema,

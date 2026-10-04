@@ -1,8 +1,8 @@
-import type { Pool, QueryResult } from 'pg';
+import type { PoolClient, QueryResult } from 'pg';
 
 export interface EmployeeRequirementRow {
 	requirementId: string;
-	requirementCode: string;
+	requirementTypeId: string;
 	displayName: string;
 	requiresDocument: boolean;
 	requiresInPerson: boolean;
@@ -12,14 +12,13 @@ export interface EmployeeRequirementRow {
 }
 
 export class EmployeeDocumentsRepository {
-	constructor(private readonly publicClient: Pool) {}
-
+	constructor(private readonly client: PoolClient) {}
 	getRequirements = async (employeeId: string): Promise<QueryResult<EmployeeRequirementRow>> => {
-		return this.publicClient.query<EmployeeRequirementRow>(
+		return this.client.query<EmployeeRequirementRow>(
 			`
 				SELECT
 					er.requirement_id AS "requirementId",
-					er.requirement_code AS "requirementCode",
+					er.requirement_type_id AS "requirementTypeId",
 					rt.display_name AS "displayName",
 					rt.requires_document AS "requiresDocument",
 					rt.in_person_only AS "requiresInPerson",
@@ -33,7 +32,8 @@ export class EmployeeDocumentsRepository {
 					issue.action_due_on AS "actionDueOn"
 				FROM public.employee_requirements AS er
 				JOIN public.requirement_types AS rt
-				  ON rt.requirement_code = er.requirement_code
+				  ON rt.config_version_id = er.config_version_id
+				 AND rt.requirement_type_id = er.requirement_type_id
 				LEFT JOIN public.requirement_issues AS issue
 				  ON issue.requirement_id = er.requirement_id
 				 AND issue.issue_code = 'MISSING'
@@ -48,39 +48,39 @@ export class EmployeeDocumentsRepository {
 	createRequirements = async (
 		employeeId: string,
 	): Promise<QueryResult<EmployeeRequirementRow>> => {
-		await this.publicClient.query(
+		await this.client.query(
 			`
 				WITH active_config AS (
 					SELECT config_version_id, action_due_days
-					FROM public.requirement_config_versions
+					FROM public.requirement_configs
 					WHERE status = 'ACTIVE'
 				), applicable_requirements AS (
 					SELECT
 						employee.employee_id,
 						config.config_version_id,
 						config.action_due_days,
-						mapping.requirement_code
+						mapping.requirement_type_id
 					FROM public.employees AS employee
 					CROSS JOIN active_config AS config
 					JOIN public.job_title_requirements AS mapping
 					  ON mapping.config_version_id = config.config_version_id
-					 AND mapping.job_title = employee.job_title
+					 AND mapping.job_code = employee.job_code
 					WHERE employee.employee_id = $1
 				), inserted_requirements AS (
 					INSERT INTO public.employee_requirements (
 						employee_id,
 						config_version_id,
-						requirement_code,
+						requirement_type_id,
 						status
 					)
 					SELECT
 						employee_id,
 						config_version_id,
-						requirement_code,
-						'PENDING'
+						requirement_type_id,
+						'missing'
 					FROM applicable_requirements
-					ON CONFLICT (employee_id, requirement_code) DO NOTHING
-					RETURNING requirement_id, employee_id, requirement_code
+					ON CONFLICT (employee_id, config_version_id, requirement_type_id) DO NOTHING
+					RETURNING requirement_id, employee_id, config_version_id, requirement_type_id
 				)
 				INSERT INTO public.requirement_issues (
 					requirement_id,
@@ -96,12 +96,12 @@ export class EmployeeDocumentsRepository {
 				FROM inserted_requirements AS inserted
 				JOIN applicable_requirements AS applicable
 				  ON applicable.employee_id = inserted.employee_id
-				 AND applicable.requirement_code = inserted.requirement_code
+				 AND applicable.config_version_id = inserted.config_version_id
+				 AND applicable.requirement_type_id = inserted.requirement_type_id
 				ON CONFLICT DO NOTHING
 			`,
 			[employeeId],
 		);
-
 		return this.getRequirements(employeeId);
 	};
 }

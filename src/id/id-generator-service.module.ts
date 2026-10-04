@@ -8,17 +8,12 @@ import {
 	dateCodeSchema,
 } from '#src/id/id-generator-service.schema.js';
 import { Errors } from '#src/http/errors.js';
-import type { SensitiveClient } from '#src/db/sensitive-client.module.js';
-import type { SensitiveInfo } from '#src/db/sensitive-client.schema.js';
+import type { SensitiveInfo } from '#src/db/sensitive-data.schema.js';
 
-type SensitiveIdLookup = Pick<SensitiveClient, 'idExists'>;
-type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds'>;
+type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds' | 'idExists'>;
 
 export class IdGeneratorService {
-	constructor(
-		private readonly sensitiveClient: SensitiveIdLookup,
-		private readonly employeeInfoRepo: EmployeeIdRepository,
-	) {}
+	constructor(private readonly employeeInfoRepo: EmployeeIdRepository) {}
 
 	public createEmployeeId = async (employee: EmployeeInfoSubmission) => {
 		let baseId: string = '';
@@ -27,7 +22,7 @@ export class IdGeneratorService {
 		baseId = this.generateBaseId(
 			this.getInitialsCode(employee.firstName, employee.lastName),
 			this.getDobCodes(employee.dateOfBirth),
-		);
+		); // 43030414001
 		const ids: string[] = await this.employeeInfoRepo.getEmployeeIds(baseId);
 		const incrementColSeq = () => {
 			collisionCounter++;
@@ -42,10 +37,12 @@ export class IdGeneratorService {
 					collisionSequence = String(collisionCounter);
 			}
 		};
+
+		// C + D
 		const newId = baseId + collisionSequence;
 		for (const id of ids) {
 			if (id === newId) {
-				const result: SensitiveInfo | null = await this.sensitiveClient.idExists(newId);
+				const result: SensitiveInfo | null = await this.employeeInfoRepo.idExists(newId);
 				if (result) {
 					if (
 						result.id === id &&
