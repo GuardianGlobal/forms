@@ -1,9 +1,9 @@
-import { OnboardingSubmissionOrchestrator } from '#src/submission-orchestrator/onboarding-submission-orchestrator.module.js';
-import { EmployeeInfoSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { OnboardingSubmissionOrchestrator } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.module.js';
+import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeDocumentsRepository } from '#src/db/employee-documents-repository.module.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import { DocumentsManager } from '#src/document-manager/documents-manager.module.js';
-import { EmployeeDocumentRetrievalService } from '#src/document-manager/employee-document-retrieval-service.module.js';
+import { DocumentsManager } from '#src/app/modules/document-manager/documents-manager.module.js';
+import { EmployeeDocumentRetrievalService } from '#src/app/modules/document-manager/employee-document-retrieval-service.module.js';
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
 import {
 	EmployeeContactProvider,

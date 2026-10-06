@@ -1,5 +1,5 @@
-import { ssnSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import { employeeIdSchema } from '#src/id/id-generator-service.schema.js';
+import { ssnSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { employeeIdSchema } from '#src/app/modules/id/id-generator-service.schema.js';
 import { QueryResultRow } from 'pg';
 import { z } from 'zod';
 

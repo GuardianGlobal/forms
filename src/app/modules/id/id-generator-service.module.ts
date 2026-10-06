@@ -1,4 +1,4 @@
-import { EmployeeInfoSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import type { ZeroNineArray } from '#src/id/id-generator-service.schema.js';
 import {

@@ -107,7 +107,7 @@ BEGIN
     IF jsonb_typeof(p_requirement_config -> 'requirements') IS DISTINCT FROM 'array' THEN
         RAISE EXCEPTION 'requirements must be an array';
     END IF;
-    v_requirements := ARRAY(
+    v_requirements := ARRAY( 
         SELECT jsonb_array_elements(
             p_requirement_config -> 'requirements'
         )

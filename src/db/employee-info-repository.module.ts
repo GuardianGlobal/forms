@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { EmployeeInfoSubmission } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { EncryptedSsnRow, SensitiveInfo } from '#src/db/sensitive-data.schema.js';
 import { decryptSsn } from '#src/util/encrypt-ssn.js';
 import { formatSensitiveData } from '#src/util/format-sensitive-data.js';

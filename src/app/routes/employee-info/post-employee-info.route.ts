@@ -1,6 +1,6 @@
 import { clientPoolManager } from '#src/app/dependencies.js';
 import { onboardingCompletion } from '#src/app/dependencies.js';
-import { employeeInfoSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { employeeInfoSubmissionSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
 import { Request, Response } from 'express';
 import { PoolClient } from 'pg';

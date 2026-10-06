@@ -1,4 +1,4 @@
-import { app } from '#src/app.js';
+import { app } from '#src/app/controller.js';
 import { clientPoolManager } from '#src/app/dependencies.js';
 import { gracefulShutdown } from '#src/app/graceful-shutdown.js';
 

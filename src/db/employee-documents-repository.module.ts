@@ -13,41 +13,15 @@ export interface EmployeeRequirementRow {
 
 export class EmployeeDocumentsRepository {
 	constructor(private readonly client: PoolClient) {}
-	getRequirements = async (employeeId: string): Promise<QueryResult<EmployeeRequirementRow>> => {
-		return this.client.query<EmployeeRequirementRow>(
-			`
-				SELECT
-					er.requirement_id AS "requirementId",
-					er.requirement_type_id AS "requirementTypeId",
-					rt.display_name AS "displayName",
-					rt.requires_document AS "requiresDocument",
-					rt.in_person_only AS "requiresInPerson",
-					rt.contains_sensitive_info AS "containsSensitiveInformation",
-					EXISTS (
-						SELECT 1
-						FROM public.employee_documents AS document
-						WHERE document.requirement_id = er.requirement_id
-						  AND document.superseded_at IS NULL
-					) AS "isOnFile",
-					issue.action_due_on AS "actionDueOn"
-				FROM public.employee_requirements AS er
-				JOIN public.requirement_types AS rt
-				  ON rt.config_version_id = er.config_version_id
-				 AND rt.requirement_type_id = er.requirement_type_id
-				LEFT JOIN public.requirement_issues AS issue
-				  ON issue.requirement_id = er.requirement_id
-				 AND issue.issue_code = 'MISSING'
-				 AND issue.status = 'OPEN'
-				WHERE er.employee_id = $1
-				ORDER BY rt.display_name
-			`,
+	getRequirements = async (employeeId: string): Promise<EmployeeRequirementRow[]> => {
+		const result = await this.client.query<EmployeeRequirementRow>(
+			`SELECT * FROM api.get_employee_requirements($1)`,
 			[employeeId],
 		);
+		return result.rows;
 	};
 
-	createRequirements = async (
-		employeeId: string,
-	): Promise<QueryResult<EmployeeRequirementRow>> => {
+	createRequirements = async (employeeId: string): Promise<EmployeeRequirementRow[]> => {
 		await this.client.query(
 			`
 				WITH active_config AS (

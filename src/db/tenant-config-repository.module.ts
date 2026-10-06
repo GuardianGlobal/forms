@@ -1,4 +1,4 @@
-import { TenantConfig } from '#src/routes/tenant/tenant-config.schemav2.js';
+import { TenantConfig } from '#src/app/modules/tenant-config/tenant-config.schemav2.js';
 import { PoolClient } from 'pg';
 
 export class TenantConfigRepository {
@@ -9,7 +9,6 @@ export class TenantConfigRepository {
 			[config],
 		);
 		const id = result.rows[0]?.config_version_id;
-		if (!id) throw new Error('Configuration insert did not return a configuration version ID.');
 		return id;
 	}
 }

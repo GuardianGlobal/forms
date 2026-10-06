@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import { employeeInfoSubmissionSchema } from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { employeeInfoSubmissionSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 
 const agencyId = 'guardian';
@@ -37,7 +37,10 @@ describe('IdGeneratorService', () => {
 		idExists = vi.fn<EmployeeInfoRepository['idExists']>().mockResolvedValue(null);
 		getEmployeeIds = vi.fn<EmployeeInfoRepository['getEmployeeIds']>().mockResolvedValue([]);
 
-		idService = new IdGeneratorService({ idExists, getEmployeeIds } as unknown as EmployeeInfoRepository);
+		idService = new IdGeneratorService({
+			idExists,
+			getEmployeeIds,
+		} as unknown as EmployeeInfoRepository);
 	});
 
 	describe('generateBaseId', () => {

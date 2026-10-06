@@ -1,0 +1,54 @@
+{
+	"id": "get_employee_requirements",
+	"functions": [
+		{
+			"signature": "api.get_employee_requirements(text)",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"function": "api.get_active_config",
+					"privileges": ["EXECUTE"]
+				},
+				{
+					"function": "api.get_employee_requirements_query",
+					"privileges": ["EXECUTE"]
+				}
+			]
+		},
+		{
+			"signature": "api.get_active_config()",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"table": "public.requirement_configs",
+					"privileges": ["SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.get_employee_requirements_query(uuid, text)",
+			"domain": "general",
+			"expose": false,
+			"access": [
+				{
+					"table": "public.employee_requirements",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_types",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.employee_documents",
+					"privileges": ["SELECT"]
+				},
+				{
+					"table": "public.requirement_issues",
+					"privileges": ["SELECT"]
+				}
+			]
+		}
+	]
+}

@@ -4,9 +4,9 @@
 	"dbFunctionFolder": "./src/db/security-functions",
 	"version": "1.0.0",
 	"description": "the forms repository for https://portal.myguardiancares.com",
-	"main": "./dist/app.js",
+	"main": "./dist/app/app.js",
 	"scripts": {
-		"dev": "tsx watch --env-file=.env ./src/app/server.ts",
+		"dev": "tsx watch --env-file=.env ./src/app/app.ts",
 		"compile": "./scripts/compile.sh",
 		"compile:test": "npx tsc --noEmit -p test/tsconfig.json",
 		"typecheck": "npm run compile && npm run compile:test",
