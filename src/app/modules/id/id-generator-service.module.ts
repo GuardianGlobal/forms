@@ -8,7 +8,7 @@ import {
 	dateCodeSchema,
 } from '#src/app/modules/id/id-generator-service.schema.js';
 import { Errors } from '#src/http/errors.js';
-import type { SensitiveInfo } from '#src/db/sensitive-data.schema.js';
+import type { SensitiveInfo } from '#src/app/modules/id/id-generator-service.schema.js';
 
 type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds' | 'idExists'>;
 
