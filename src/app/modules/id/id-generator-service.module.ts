@@ -1,12 +1,12 @@
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import type { ZeroNineArray } from '#src/id/id-generator-service.schema.js';
+import type { ZeroNineArray } from '#src/app/modules/id/id-generator-service.schema.js';
 import {
 	zeroNineNumberSchema,
 	zeroNineArraySchema,
 	stringCharacterSchema,
 	dateCodeSchema,
-} from '#src/id/id-generator-service.schema.js';
+} from '#src/app/modules/id/id-generator-service.schema.js';
 import { Errors } from '#src/http/errors.js';
 import type { SensitiveInfo } from '#src/db/sensitive-data.schema.js';
 

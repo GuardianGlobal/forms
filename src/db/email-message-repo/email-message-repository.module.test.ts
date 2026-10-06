@@ -68,7 +68,7 @@ describe('EmailMessageRepository.getContext', () => {
 		const pool = { query } as unknown as PoolClient;
 		const repository = new EmailMessageRepository(agency, pool);
 
-		const context = await repository.getContext(employeeId, formCompletionUrl);
+		const context = await repository.getContext(employeeId);
 
 		expect(query).toHaveBeenCalledOnce();
 		expect(query).toHaveBeenCalledWith(expect.any(String), [employeeId]);
@@ -100,6 +100,5 @@ describe('EmailMessageRepository.getContext', () => {
 			}),
 		);
 		expect(query).toHaveBeenCalledWith('SELECT * FROM api.get_context($1);', [employeeId]);
-
 	});
 });

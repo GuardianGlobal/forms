@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from 'pg';
+import { PoolClient } from 'pg';
 import type {
 	EmailContext,
 	RequirementIssue,
@@ -21,6 +21,7 @@ export type EmailContextRow = {
 	requiresInPerson: boolean;
 	containsSensitiveInformation: boolean;
 
+	formToken: string;
 	deadline: Date | string | null;
 };
 
@@ -83,7 +84,7 @@ export class EmailMessageRepository {
 		private readonly agency: EmailContext['agency'],
 		private readonly client: PoolClient,
 	) {}
-	getContext = async (employeeId: string, formCompletionUrl: string): Promise<EmailContext | null> => {
+	getContext = async (employeeId: string) => {
 		const agency = this.agency;
 		const result = await this.client.query<EmailContextRow>(
 			'SELECT * FROM api.get_context($1);',
@@ -130,7 +131,7 @@ export class EmailMessageRepository {
 			}),
 
 			deadline: toDate(firstRow.deadline),
-			formCompletionUrl,
+			formCompletionUrl: `https://portal.myguardiancares.com/form/${firstRow.formToken}?employee=${firstRow.employeeId}`,
 		};
 	};
 }

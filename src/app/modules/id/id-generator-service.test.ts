@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
+import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.module.js';
 import { employeeInfoSubmissionSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 

@@ -1,4 +1,7 @@
+import { ssnSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { QueryResultRow } from 'pg';
 import { z } from 'zod';
+
 const zeroNineNumberSchema = z
 	.number()
 	.int()
@@ -37,6 +40,20 @@ const employeeIdSchema = z
 	.string()
 	.trim()
 	.regex(/^[0-9]{11}$/);
+
+export interface EncryptedSsnRow extends QueryResultRow {
+	employee_id: string;
+	ssn_ciphertext: Buffer;
+	ssn_nonce: Buffer;
+	ssn_key_version: string;
+}
+
+export const sensitiveInfoSchema = z.object({
+	id: employeeIdSchema,
+	ssn: ssnSchema,
+});
+
+export type SensitiveInfo = z.output<typeof sensitiveInfoSchema>;
 
 export {
 	zeroNineNumberSchema,

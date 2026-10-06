@@ -5,12 +5,12 @@ import { DisposablePostgres } from './support/disposable-postgres.js';
 import { encryptSsn } from '#src/util/encrypt-ssn.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import type { Queue } from 'bullmq';
-import { IdGeneratorService } from '#src/id/id-generator-service.module.js';
-import { OnboardingSubmissionOrchestrator } from '#src/submission-orchestrator/onboarding-submission-orchestrator.module.js';
+import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.module.js';
+import { OnboardingSubmissionOrchestrator } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.module.js';
 import {
 	employeeInfoSubmissionSchema,
 	type EmployeeInfoSubmission,
-} from '#src/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+} from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 
 interface PublicEmployeeRow extends QueryResultRow {
 	employee_id: string;
@@ -136,7 +136,10 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		);
 
 		expect(result.rows[0].employee_id).toBe(employeeId);
-		const { rows: [stored] } = await publicPool.query(`
+		const {
+			rows: [stored],
+		} = await publicPool.query(
+			`
 			SELECT e.first_name, e.last_name, e.email, e.job_title,
 				p.start_date::text, s.date_of_birth::text,
 				s.ssn_ciphertext, s.ssn_nonce, s.ssn_key_version, s.ssn_last_four
@@ -144,7 +147,9 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			JOIN public.employment_periods p USING (employee_id)
 			JOIN sensitive.employee_sensitive_data s USING (employee_id)
 			WHERE e.employee_id = $1
-		`, [employeeId]);
+		`,
+			[employeeId],
+		);
 		expect(stored).toEqual({
 			first_name: employee.firstName,
 			last_name: employee.lastName,
@@ -168,9 +173,16 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		for (const employeeId of ['98765432002', '98765432001']) {
 			await publicPool.query(
 				'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)',
-				[employeeId, employee, '2026-01-01', employee.dateOfBirth,
-					encrypted.ciphertext, encrypted.nonce, encrypted.keyVersion,
-					employee.socialSecurityNumber.slice(-4)],
+				[
+					employeeId,
+					employee,
+					'2026-01-01',
+					employee.dateOfBirth,
+					encrypted.ciphertext,
+					encrypted.nonce,
+					encrypted.keyVersion,
+					employee.socialSecurityNumber.slice(-4),
+				],
 			);
 		}
 
@@ -178,16 +190,19 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		try {
 			await client.query('SET ROLE g_forms_integration_runtime');
 			const matching = await client.query<{ ids: string[] }>(
-				'SELECT api.get_employee_ids($1) AS ids', ['98765432'],
+				'SELECT api.get_employee_ids($1) AS ids',
+				['98765432'],
 			);
 			const empty = await client.query<{ ids: string[] }>(
-				'SELECT api.get_employee_ids($1) AS ids', ['00000000'],
+				'SELECT api.get_employee_ids($1) AS ids',
+				['00000000'],
 			);
 
 			expect(matching.rows[0].ids).toEqual(['98765432001', '98765432002']);
 			expect(empty.rows[0].ids).toEqual([]);
-			await expect(client.query('SELECT employee_id FROM public.employees'))
-				.rejects.toThrow('permission denied');
+			await expect(client.query('SELECT employee_id FROM public.employees')).rejects.toThrow(
+				'permission denied',
+			);
 		} finally {
 			await client.query('RESET ROLE');
 			client.release();
@@ -202,7 +217,11 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			for (const submission of submissions) {
 				const idGenerator = new IdGeneratorService(repository);
 				const queue = { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queue;
-				const orchestrator = new OnboardingSubmissionOrchestrator(queue, idGenerator, repository);
+				const orchestrator = new OnboardingSubmissionOrchestrator(
+					queue,
+					idGenerator,
+					repository,
+				);
 
 				await orchestrator.handleSubmission(submission);
 			}
@@ -218,9 +237,7 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			);
 			expect(publicResult.rows).toHaveLength(3);
 
-			const publicRowsByEmail = new Map(
-				publicResult.rows.map((row) => [row.email, row]),
-			);
+			const publicRowsByEmail = new Map(publicResult.rows.map((row) => [row.email, row]));
 			for (const submission of submissions) {
 				expect(publicRowsByEmail.get(submission.email)).toMatchObject({
 					first_name: submission.firstName,

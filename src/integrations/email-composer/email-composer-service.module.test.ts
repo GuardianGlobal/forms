@@ -5,7 +5,6 @@ import {
 } from '#src/db/email-message-repo/email-message-repository.module.js';
 import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
 import type { EmailContext } from '#src/integrations/email-composer/email-composer-service.schema.js';
-import { OndboardingFormsProvider } from '../onboarding-forms-provider.module.js';
 import { Pool, PoolClient } from 'pg';
 const identificationRequirementTypeId = '00000000-0000-4000-8000-000000000001';
 const trainingRequirementTypeId = '00000000-0000-4000-8000-000000000002';
@@ -26,7 +25,7 @@ const contextRows: { rows: EmailContextRow[] } = {
 			actionDueAt: new Date('2026-09-01T00:00:00.000Z'),
 			requiresInPerson: true,
 			containsSensitiveInformation: false,
-
+			formToken: 'a8d96aa0-bd6d-5977-9d39-e51e9205cb51',
 			deadline: new Date('2026-09-05T00:00:00.000Z'),
 		},
 		{
@@ -45,6 +44,7 @@ const contextRows: { rows: EmailContextRow[] } = {
 			requiresInPerson: true,
 			containsSensitiveInformation: false,
 
+			formToken: 'a8d96aa0-bd6d-5977-9d39-e51e9205cb51',
 			deadline: new Date('2026-09-05T00:00:00.000Z'),
 		},
 	],
@@ -96,7 +96,6 @@ describe('EmailComposerService', () => {
 			{ agencyId: 'agency-1', name: 'Guardian' },
 			mockPool as PoolClient,
 		),
-		new OndboardingFormsProvider(),
 	);
 
 	it('creates the reusable document-action composition', () => {

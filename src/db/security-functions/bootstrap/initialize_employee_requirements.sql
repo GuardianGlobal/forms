@@ -10,7 +10,7 @@ AS $$
     FROM public.job_title_requirements AS jtr
     JOIN public.requirement_configs AS rc
         ON rc.config_version_id = jtr.config_version_id
-    WHERE rc.status = 'ACTIVE'
+    WHERE rc.status = 'active'
     AND jtr.job_code = p_job_title
 $$;
 
@@ -69,7 +69,7 @@ BEGIN
         ON rmf.requirement_type_id = er.requirement_type_id
        AND rmf.issue_code = ri.issue_code
     WHERE e.employee_id = p_employee_id
-      AND ri.status = 'OPEN'
+      AND ri.status = 'open'
     ORDER BY
         ri.action_due_on NULLS LAST,
         ri.issue_id;
@@ -92,14 +92,14 @@ BEGIN
     )
     SELECT
         er.requirement_id,
-        'MISSING',
-        'OPEN',
+        'missing',
+        'open',
         p_action_due_on
     FROM public.employee_requirements AS er
     WHERE er.employee_id = p_employee_id
       AND er.status = 'missing'
     ON CONFLICT (requirement_id, issue_code)
-        WHERE status = 'OPEN' AND document_id IS NULL
+        WHERE status = 'open' AND document_id IS NULL
     DO NOTHING;
 END;
 $$;
@@ -163,7 +163,7 @@ BEGIN
         AND er.status <> 'complete'
         AND EXISTS (
             SELECT 1 FROM public.requirement_issues AS ri
-            WHERE ri.requirement_id = er.requirement_id AND ri.status = 'OPEN'
+            WHERE ri.requirement_id = er.requirement_id AND ri.status = 'open'
         );
 
     INSERT INTO public.form_components (display_name, config, expires_at)
@@ -232,7 +232,7 @@ BEGIN
     SELECT rc.action_due_days
     INTO STRICT v_action_due_days
     FROM public.requirement_configs AS rc
-    WHERE rc.status = 'ACTIVE'
+    WHERE rc.status = 'active'
     FOR SHARE;
 
     INSERT INTO public.employee_requirements (
