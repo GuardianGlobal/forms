@@ -19,7 +19,7 @@ export class EmployeeInfoRepository {
 	}
 	async idExists(employeeId: string): Promise<SensitiveInfo | null> {
 		const result = await this.client.query<EncryptedSsnRow>(
-			'SELECT * FROM api.get_employee_identity($1)',
+			'SELECT * FROM api.employee_id_exists($1)',
 			[employeeId],
 		);
 		const row = result.rows[0];

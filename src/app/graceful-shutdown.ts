@@ -1,5 +1,5 @@
 import { ClientPoolManager } from '#src/db/client-pool-manager.module.js';
-import type { BullMqManager } from '#src/bullmq/bullmq-manager.schema.js';
+import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.schema.js';
 import type { Server } from 'node:http';
 
 type PoolManager = Pick<ClientPoolManager, 'endAll'>;
@@ -7,7 +7,7 @@ type PoolManager = Pick<ClientPoolManager, 'endAll'>;
 type GracefulShutdownDependencies = {
 	server: Server;
 	poolManagers: PoolManager[];
-	bullMqs: BullMqManager[];
+	bullMqs: BullMqs;
 };
 
 export function gracefulShutdown({ server, poolManagers, bullMqs }: GracefulShutdownDependencies) {

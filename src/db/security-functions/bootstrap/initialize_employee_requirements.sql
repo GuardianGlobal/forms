@@ -10,7 +10,7 @@ AS $$
     FROM public.job_title_requirements AS jtr
     JOIN public.requirement_configs AS rc
         ON rc.config_version_id = jtr.config_version_id
-    WHERE rc.status = 'active'
+    WHERE rc.status = 'ACTIVE'
     AND jtr.job_code = p_job_title
 $$;
 
@@ -232,7 +232,7 @@ BEGIN
     SELECT rc.action_due_days
     INTO STRICT v_action_due_days
     FROM public.requirement_configs AS rc
-    WHERE rc.status = 'active'
+    WHERE rc.status = 'ACTIVE'
     FOR SHARE;
 
     INSERT INTO public.employee_requirements (

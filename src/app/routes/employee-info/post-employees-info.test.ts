@@ -1,20 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
 import type { PoolClient } from 'pg';
-import { clientPoolManager, onboardingCompletion } from '#src/app/dependencies.js';
+import {
+	clientPoolManager,
+	bullWorkerManager,
+	bullQueueManager,
+	bullFlowMangaer,
+} from '#src/app/dependencies.js';
 import { errorHandler } from '#src/http/error-handler.middleware.js';
 import { postEmployeeInfo } from './post-employee-info.route.js';
 import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
 
 vi.mock('#src/app/dependencies.js', () => ({
 	clientPoolManager: { withClient: vi.fn() },
-	onboardingCompletion: { add: vi.fn() },
+	bullWorkerManager: { getWorker: vi.fn(), endAll: vi.fn() },
+	bullQueueManager: { getQueue: vi.fn(), endAll: vi.fn() },
+	bullFlowMangaer: { getFlowProducer: vi.fn(), endAll: vi.fn() },
 }));
 vi.mock('./post-employee-info.composition.js', () => ({
 	createOnboardingOrchestrator: vi.fn(),
 }));
 
 const submission = {
+	operationId: 'b3b9d7a4-c20e-4f7d-8bd5-269e31a0e740',
 	agencyId: 'guardian',
 	agencyName: 'Guardian Home Care',
 	employmentType: 'W_2',
@@ -81,13 +89,19 @@ describe('POST /employee-info', () => {
 		await submit(submission, response);
 
 		expect(clientPoolManager.withClient).toHaveBeenCalledWith('guardian', expect.any(Function));
-		expect(createOnboardingOrchestrator).toHaveBeenCalledWith(client, onboardingCompletion);
+		expect(createOnboardingOrchestrator).toHaveBeenCalledWith(client, [
+		bullWorkerManager,
+		bullQueueManager,
+		bullFlowMangaer,
+	]);
 		expect(handleSubmission).toHaveBeenCalledWith(submission);
 		expect(spies.writeHead).toHaveBeenCalledWith(201);
 		expect(spies.end).toHaveBeenCalledWith('Accepted');
 	});
 
 	it.each([
+		['operationId', undefined],
+		['operationId', 'invalid'],
 		['agencyId', ''],
 		['firstName', 123],
 		['lastName', 'x'.repeat(51)],

@@ -9,6 +9,7 @@ export class TenantConfigRepository {
 			[config],
 		);
 		const id = result.rows[0]?.config_version_id;
+		if (!id) throw new Error('Configuration insert did not return a configuration version ID.');
 		return id;
 	}
 }

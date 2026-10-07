@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { PoolClient } from 'pg';
-import { EmailMessageRepository } from '#src/db/email-message-repo/email-message-repository.module.js';
+import { EmailMessageRepository, type EmailContextRow } from '#src/db/email-message-repo/email-message-repository.module.js';
 
 const employeeId = '37951106000';
 const agency = {
@@ -8,7 +8,7 @@ const agency = {
 	name: 'Guardian Home Care',
 };
 const formCompletionUrl =
-	'https://portal.myguardiancares.com/forms/one-time-token?employee=37951106000';
+	'https://portal.myguardiancares.com/form/one-time-token?employee=37951106000';
 const actionDueOn = '2026-09-05';
 const i9RequirementTypeId = '00000000-0000-4000-8000-000000000002';
 const customFitTestRequirementTypeId = '00000000-0000-4000-8000-000000000012';
@@ -32,7 +32,7 @@ describe('EmailMessageRepository.getContext', () => {
 	it('builds a missing-document context for a new employee with no documents on file', async () => {
 		// These rows represent the MISSING issues opened by the document-resolution case.
 		// No employee_documents rows exist for this employee.
-		const rows = defaultRequirements.map(
+		const rows: EmailContextRow[] = defaultRequirements.map(
 			(
 				[
 					requirementTypeId,
@@ -43,6 +43,7 @@ describe('EmailMessageRepository.getContext', () => {
 				index,
 			) => ({
 				employeeId,
+				formToken: 'one-time-token',
 				firstName: 'Avery',
 				email: 'avery@example.com',
 				issueId: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,

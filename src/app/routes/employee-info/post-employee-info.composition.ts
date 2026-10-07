@@ -2,17 +2,13 @@ import { OnboardingSubmissionOrchestrator } from '#src/app/modules/submission-or
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.module.js';
 import { PoolClient } from 'pg';
-import { Queue } from 'bullmq';
+import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.schema.js';
 
 export function createOnboardingOrchestrator(
 	databaseClient: PoolClient,
-	onboardingCompletion: Queue,
+	bullMqs: BullMqs,
 ): OnboardingSubmissionOrchestrator {
 	const employeeInfoRepo = new EmployeeInfoRepository(databaseClient);
 	const idGenerator = new IdGeneratorService(employeeInfoRepo);
-	return new OnboardingSubmissionOrchestrator(
-		onboardingCompletion,
-		idGenerator,
-		employeeInfoRepo,
-	);
+	return new OnboardingSubmissionOrchestrator(bullMqs, idGenerator, employeeInfoRepo);
 }

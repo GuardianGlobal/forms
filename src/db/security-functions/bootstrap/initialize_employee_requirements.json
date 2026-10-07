@@ -90,7 +90,7 @@
 			]
 		},
 		{
-			"signature": "api.initialize_employee_requirements(text,text,uuid,timestamptz)",
+			"signature": "api.initialize_employee_requirements(text,uuid)",
 			"domain": "general",
 			"expose": false,
 			"access": [
@@ -123,7 +123,7 @@
 					"privileges": ["SELECT"]
 				},
 				{
-					"function": "api.build_form_component_config(text,uuid,timestamptz)",
+					"function": "api.build_form_component_manifest(text,uuid,timestamptz)",
 					"privileges": ["EXECUTE"]
 				}
 			]

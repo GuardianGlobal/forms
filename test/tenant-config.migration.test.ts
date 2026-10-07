@@ -74,7 +74,7 @@ describe('Guardian configuration migration', () => {
 	});
 	it('regenerates the complete catalog and SQL identically from the supplied CSV', () => {
 		expect(() =>
-			execFileSync('python3', [resolve(dbRoot, 'O*NET/generate.py'), '--check'], {
+			execFileSync(process.execPath, [resolve(dbRoot, 'O*NET/generate.js'), '--check'], {
 				stdio: 'pipe',
 			}),
 		).not.toThrow();

@@ -109,8 +109,7 @@ describe.skipIf(!enabled)('tenant config SQL on disposable PostgreSQL', () => {
 			),
 		);
 	});
-	it('seeds all occupations and safely replays the catalog seed', async () => {
-		await pool.query(table('022_create_job_titles.sql'));
+	it('seeds all occupations during bootstrap', async () => {
 		expect(
 			(await pool.query('SELECT count(*)::int AS n FROM public.job_titles')).rows[0].n,
 		).toBe(1016);

@@ -1,9 +1,9 @@
+import type { PgQueue } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { BullMQQueueManager } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import { getPgConnection } from '#src/bullmq/get-pg-connection.js';
 import { createPostgresBackend, Queue } from 'bullmq';
-import type { PgQueue } from '#src/bullmq/bullmq-manager.schema.js';
-import { getPgConnection } from './get-pg-connection.js';
-import { BullMqManager } from './bullmq-manager.schema.js';
 
-export class BullQueueManager implements BullMqManager {
+export class BullQueueManager implements BullMQQueueManager {
 	private readonly queues = new Map<string, PgQueue>();
 	public getQueue(agencyId: string, queueName: string): PgQueue {
 		const key = JSON.stringify([agencyId, queueName]);

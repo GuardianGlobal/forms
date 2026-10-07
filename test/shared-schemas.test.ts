@@ -5,10 +5,10 @@ import {
 	zeroNineArraySchema,
 	zeroNineNumberSchema,
 } from '#src/app/modules/id/id-generator-service.schema.js';
-import { sensitiveInfoSchema } from '#src/db/sensitive-data.schema.js';
+import { sensitiveInfoSchema } from '#src/app/modules/id/id-generator-service.schema.js';
 import { ssnSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { resolveGmailCredentials } from '#src/integrations/gmail/resolve-gmail-credentials.js';
-import { getRedisConnection } from '#src/redis/get-redis-connection.js';
+import { getPgConnection } from '#src/bullmq/get-pg-connection.js';
 
 afterEach(() => vi.unstubAllEnvs());
 describe('ID and sensitive data schemas', () => {
@@ -73,20 +73,17 @@ describe('integration configuration schemas', () => {
 		vi.stubEnv('GMAIL_OAUTH_CLIENT_ID', undefined);
 		expect(resolveGmailCredentials).toThrow();
 	});
-	it('parses Redis connection values without connecting', () => {
-		vi.stubEnv('REDIS_HOST', 'localhost');
-		vi.stubEnv('REDIS_PORT', '6379');
-		vi.stubEnv('REDIS_USR', 'user');
-		vi.stubEnv('REDIS_PWD', 'password');
-		expect(getRedisConnection()).toEqual({
-			host: 'localhost',
-			port: 6379,
-			username: 'user',
-			password: 'password',
+	it('builds a tenant PostgreSQL connection without connecting', () => {
+		vi.stubEnv('DB_HOST', 'localhost');
+		vi.stubEnv('DB_PORT', '5432');
+		vi.stubEnv('DB_USR', 'user');
+		vi.stubEnv('DB_PWD', 'password');
+		expect(getPgConnection('guardian')).toEqual({
+			connection: 'postgresql://user:password@localhost:5432/guardian',
 		});
 		for (const port of ['0', '65536', 'bad', '1.5']) {
-			vi.stubEnv('REDIS_PORT', port);
-			expect(getRedisConnection).toThrow();
+			vi.stubEnv('DB_PORT', port);
+			expect(() => getPgConnection('guardian')).toThrow();
 		}
 	});
 });

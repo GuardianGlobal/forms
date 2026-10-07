@@ -1,5 +1,5 @@
-import { clientPoolManager } from '#src/app/dependencies.js';
-import { onboardingCompletion } from '#src/app/dependencies.js';
+import { bullFlowMangaer, clientPoolManager } from '#src/app/dependencies.js';
+import { bullQueueManager, bullWorkerManager } from '#src/app/dependencies.js';
 import { employeeInfoSubmissionSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
 import { Request, Response } from 'express';
@@ -13,7 +13,11 @@ export const postEmployeeInfo = async (request: Request, response: Response) => 
 	// sensitive db
 	await clientPoolManager.withClient(agencyId, async (pgClient: PoolClient) => {
 		//orchestration
-		const orchestrator = createOnboardingOrchestrator(pgClient, onboardingCompletion);
+		const orchestrator = createOnboardingOrchestrator(pgClient, [
+			bullWorkerManager,
+			bullQueueManager,
+			bullFlowMangaer,
+		]);
 		await orchestrator.handleSubmission(employee);
 	});
 	//success

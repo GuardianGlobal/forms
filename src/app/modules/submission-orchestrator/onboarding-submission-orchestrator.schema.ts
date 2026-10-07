@@ -84,6 +84,7 @@ const dateOfBirthSchema = z
 	.refine((birthDate) => isValidBirthDate(birthDate));
 
 export const employeeInfoSubmissionSchema = z.object({
+	operationId: z.uuid(),
 	agencyName: z.string().trim().min(5).max(75),
 	agencyId: z.string().trim().min(1).max(63),
 	firstName: varchar50Schema,

@@ -1,5 +1,10 @@
 import { app } from '#src/app/controller.js';
-import { clientPoolManager, bullQueueManager, bullWorkerManager } from '#src/app/dependencies.js';
+import {
+	clientPoolManager,
+	bullQueueManager,
+	bullWorkerManager,
+	bullFlowMangaer,
+} from '#src/app/dependencies.js';
 import { gracefulShutdown } from '#src/app/graceful-shutdown.js';
 
 const hostname = process.env.HOST;
@@ -12,7 +17,7 @@ export const server = app.listen({ hostname, port }, () =>
 const shutdown = gracefulShutdown({
 	server,
 	poolManagers: [clientPoolManager],
-	bullMqs: [bullWorkerManager, bullQueueManager],
+	bullMqs: [bullWorkerManager, bullQueueManager, bullFlowMangaer],
 });
 
 process.on('SIGTERM', shutdown);

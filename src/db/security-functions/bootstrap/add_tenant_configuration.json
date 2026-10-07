@@ -44,15 +44,15 @@
 			"expose": true,
 			"access": [
 				{
-					"function": "api.insert_requirement_config",
+					"function": "api.insert_requirement_config(jsonb)",
 					"privileges": ["EXECUTE"]
 				},
 				{
-					"function": "api.insert_requirement_types",
+					"function": "api.insert_requirement_types(uuid,jsonb[])",
 					"privileges": ["EXECUTE"]
 				},
 				{
-					"function": "api.insert_job_title_requirements",
+					"function": "api.insert_job_title_requirements(uuid,jsonb[])",
 					"privileges": ["EXECUTE"]
 				}
 			]

@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
 import type { Pool, QueryResultRow } from 'pg';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { DisposablePostgres } from './support/disposable-postgres.js';
 import { encryptSsn } from '#src/util/encrypt-ssn.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import type { Queue } from 'bullmq';
+import type { BullMqs, PgQueue } from '#src/bullmq/schema/bullmq-manager.schema.js';
 import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.module.js';
 import { OnboardingSubmissionOrchestrator } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.module.js';
 import {
@@ -35,7 +35,7 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Zara',
 		lastName: 'Quartz',
 		preferredName: null,
-		jobTitle: 'PCA',
+		jobTitle: '31-1122.00',
 		employmentStatus: 'active',
 		employmentType: 'W_2',
 		gender: 'F',
@@ -55,7 +55,7 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Yves',
 		lastName: 'Nimbus',
 		preferredName: 'Yve',
-		jobTitle: 'PCA',
+		jobTitle: '31-1122.00',
 		employmentStatus: 'starting',
 		employmentType: 'W_2',
 		gender: 'M',
@@ -75,7 +75,7 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Xena',
 		lastName: 'Maple',
 		preferredName: null,
-		jobTitle: 'PCA',
+		jobTitle: '31-1122.00',
 		employmentStatus: 'inactive',
 		employmentType: 'W_2',
 		gender: null,
@@ -89,7 +89,7 @@ const submissions: EmployeeInfoSubmission[] = [
 		stateCode: 'IN',
 		zipCode: '46204',
 	},
-].map((submission) => employeeInfoSubmissionSchema.parse(submission));
+].map((submission) => employeeInfoSubmissionSchema.parse({ operationId: randomUUID(), ...submission }));
 
 const testEmails = submissions.map(({ email }) => email);
 const integrationTestsEnabled = process.env.RUN_DB_INTEGRATION_TESTS === 'true';
@@ -121,8 +121,8 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		const employeeId = '12345678901';
 		const encrypted = encryptSsn(employee.socialSecurityNumber);
 
-		const result = await publicPool.query<{ employee_id: string }>(
-			'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8) AS employee_id',
+		await publicPool.query(
+			'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)',
 			[
 				employeeId,
 				employee,
@@ -135,12 +135,11 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			],
 		);
 
-		expect(result.rows[0].employee_id).toBe(employeeId);
 		const {
 			rows: [stored],
 		} = await publicPool.query(
 			`
-			SELECT e.first_name, e.last_name, e.email, e.job_title,
+			SELECT e.first_name, e.last_name, e.email, e.job_code,
 				p.start_date::text, s.date_of_birth::text,
 				s.ssn_ciphertext, s.ssn_nonce, s.ssn_key_version, s.ssn_last_four
 			FROM public.employees e
@@ -154,7 +153,7 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			first_name: employee.firstName,
 			last_name: employee.lastName,
 			email: employee.email,
-			job_title: employee.jobTitle,
+			job_code: employee.jobTitle,
 			start_date: '2026-01-01',
 			date_of_birth: employee.dateOfBirth,
 			ssn_ciphertext: encrypted.ciphertext,
@@ -209,22 +208,32 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		}
 	});
 
-	it('validates and stores three submissions in both employee tables', async () => {
+	it('stores submissions in both employee tables and queues their operation and employee IDs', async () => {
 		const pgClient = await publicPool.connect();
 		try {
 			const repository = new EmployeeInfoRepository(pgClient);
+			const add = vi.fn().mockResolvedValue(undefined);
+			const queue = { add } as unknown as PgQueue;
+			const getQueue = vi.fn().mockReturnValue(queue);
+			const bullMqs: BullMqs = [
+				{ getWorker: vi.fn(), endAll: vi.fn() },
+				{ getQueue, endAll: vi.fn() },
+				{ getFlowProducer: vi.fn(), endAll: vi.fn() },
+			];
+			const idGenerator = new IdGeneratorService(repository);
+			const orchestrator = new OnboardingSubmissionOrchestrator(
+				bullMqs,
+				idGenerator,
+				repository,
+			);
 
 			for (const submission of submissions) {
-				const idGenerator = new IdGeneratorService(repository);
-				const queue = { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queue;
-				const orchestrator = new OnboardingSubmissionOrchestrator(
-					queue,
-					idGenerator,
-					repository,
-				);
-
 				await orchestrator.handleSubmission(submission);
 			}
+			expect(getQueue).toHaveBeenCalledTimes(submissions.length);
+			expect(add).toHaveBeenCalledTimes(submissions.length);
+			expect(bullMqs[0].getWorker).not.toHaveBeenCalled();
+			expect(bullMqs[2].getFlowProducer).not.toHaveBeenCalled();
 
 			const publicResult = await publicPool.query<PublicEmployeeRow>(
 				`
@@ -238,7 +247,12 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			expect(publicResult.rows).toHaveLength(3);
 
 			const publicRowsByEmail = new Map(publicResult.rows.map((row) => [row.email, row]));
-			for (const submission of submissions) {
+			for (const [index, submission] of submissions.entries()) {
+				expect(getQueue).toHaveBeenNthCalledWith(index + 1, submission.agencyId, 'onboarding');
+				expect(add).toHaveBeenNthCalledWith(index + 1, 'onboarding', {
+					operationId: submission.operationId,
+					employeeId: publicRowsByEmail.get(submission.email)?.employee_id,
+				});
 				expect(publicRowsByEmail.get(submission.email)).toMatchObject({
 					first_name: submission.firstName,
 					last_name: submission.lastName,
