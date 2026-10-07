@@ -1,9 +1,7 @@
 import { ClientPoolManager } from '#src/db/client-pool-manager.module.js';
-import { getRedisConnection } from '#src/redis/get-redis-connection.js';
-import { Queue } from 'bullmq';
+import { BullQueueManager } from '#src/bullmq/bull-queue-manager.module.js';
+import { BullWorkerManager } from '#src/bullmq/bull-worker-manager.module.js';
 
 export const clientPoolManager = new ClientPoolManager();
-
-export const onboardingCompletion = new Queue('onboarding', {
-	connection: getRedisConnection(),
-});
+export const bullQueueManager = new BullQueueManager();
+export const bullWorkerManager = new BullWorkerManager();
