@@ -108,11 +108,11 @@ CREATE OR REPLACE FUNCTION api.build_form_component_manifest(
     p_employee_id text,
     p_config_version_id uuid
 )
-RETURNS uuid
+RETURNS void
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF NULL IF(btrim(p_employee_id), '') IS NULL
+    IF NULLIF(btrim(p_employee_id), '') IS NULL
         OR p_config_version_id IS NULL THEN
             RAISE EXCEPTION 'Employee ID and config version ID are required';
     END IF;
@@ -124,8 +124,8 @@ BEGIN
         employee_id
     )
     SELECT 
-        er.employee_id, 
-        fc.component_id,
+        er.config_version_id, 
+        er.requirement_type_id,
         fc.component_id,
         er.employee_id
     FROM public.employee_requirements AS er
@@ -133,7 +133,7 @@ BEGIN
         ON rt.config_version_id = er.config_version_id
         AND rt.requirement_type_id = er.requirement_type_id
     JOIN public.form_components AS fc
-        ON fc.requirement_config_id = er.requirement_config_id
+        ON fc.config_version_id = er.config_version_id
         AND fc.requirement_type_id = er.requirement_type_id
     WHERE er.employee_id = p_employee_id
         AND er.config_version_id = p_config_version_id
@@ -147,7 +147,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION api.initialize_employee_requirements(
-    p_employee_id text,
+    p_employee_id text
 )
 RETURNS TABLE (
     "employeeId" text,
@@ -169,7 +169,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_config_version_id uuid;
-    v_job_title text;
+
     v_action_due_days integer;
     v_existing_employee_id text;
 BEGIN
@@ -183,6 +183,10 @@ BEGIN
     WHERE rc.status = 'ACTIVE'
     FOR SHARE;
 
+    WITH v_job_title AS (
+        SELECT e.job_code FROM public.employees AS e
+        WHERE e.employee_id = p_employee_id
+    )
     INSERT INTO public.employee_requirements (
         employee_id,
         config_version_id,
@@ -194,18 +198,18 @@ BEGIN
         jtr.config_version_id,
         jtr.requirement_type_id,
         'missing'
-    FROM api.get_job_title_requirements(v_job_title) AS jtr
+    FROM v_job_title AS jt
+    CROSS JOIN LATERAL api.get_job_title_requirements(jt.job_code) AS jtr   
     ON CONFLICT ON CONSTRAINT employee_requirements_employee_type_unique
         DO NOTHING;
 
     PERFORM api.populate_employee_requirement_issues(
-        requirement_config,
         p_employee_id,
         CURRENT_DATE + v_action_due_days
     );
 
     PERFORM api.build_form_component_manifest(
-        p_employee_id, v_config_version_id, CURRENT_DATE + v_action_due_days
+        p_employee_id, v_config_version_id
     );
     RETURN QUERY
         SELECT context.*

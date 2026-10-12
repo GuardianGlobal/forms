@@ -15,17 +15,24 @@ interface JobData {
 }
 
 export interface ComposerPayload {
+	agencyId: string;
 	emailId: string;
 	employeeId: string;
 	repo: EmailMessageRepository;
 }
 
 export async function composerEmail(job: JobData): Promise<ComposerPayload> {
+	const agencyId = job.data.context.agency.agencyId;
 	const composer = new EmailComposerService(job.data.context);
 	const repo = new EmailMessageRepository(job.data.context.agency, job.data.client);
 	const emailMessage: EmailMessage = composer.composeEmail(job.data.employeeId);
-	const emailId: string = await repo.registerEmailMessage(job.data.employeeId, emailMessage);
+	const emailId: string = await repo.registerEmailMessage(
+		job.data.employeeId,
+		emailMessage,
+		'onboarding',
+	);
 	return {
+		agencyId,
 		emailId,
 		employeeId: job.data.employeeId,
 		repo,

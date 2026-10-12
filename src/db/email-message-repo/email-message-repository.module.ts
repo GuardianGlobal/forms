@@ -7,6 +7,8 @@ import type {
 } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 import type { CreateEmailOptions } from 'resend';
 
+export type EmailMessageTemplate = 'onboarding' | 'missing requirements';
+
 export type EmailContextRow = {
 	employeeId: string;
 	firstName: string;
@@ -87,23 +89,39 @@ export class EmailMessageRepository {
 		private readonly client: PoolClient,
 	) {}
 
-	getEmailMessage = async (emailId: string, employeeId: string): Promise<CreateEmailOptions> => {
-		const result = await this.client.query<CreateEmailOptions>(
-			`SELECT api.get_email_message($1, $2)`,
-			[emailId, employeeId],
+	updateEmailMessageStatus = async (
+		emailId: string,
+		payload: {
+			id: string;
+			status: string;
+			error?: string;
+		},
+	): Promise<void> => {
+		throw new Error('Method not implemented!');
+	};
+
+	getEmailMessage = async (
+		tenantDomain: string,
+		employeeId: string,
+		emailId: string,
+	): Promise<CreateEmailOptions> => {
+		const result = await this.client.query<{ message: CreateEmailOptions }>(
+			`SELECT api.get_email_message($1, $2, $3)`,
+			[tenantDomain, employeeId, emailId],
 		);
-		return result.rows[0];
+		return result.rows[0].message;
 	};
 
 	registerEmailMessage = async (
 		employeeId: string,
 		emailMessage: EmailMessage,
+		messageTemplate: EmailMessageTemplate,
 	): Promise<string> => {
-		const result = await this.client.query(`SELECT api.registerEmailMessage($1,$2)`, [
-			employeeId,
-			emailMessage,
-		]);
-		return result.rows[0];
+		const result = await this.client.query(
+			`SELECT * FROM api.register_email_message($1,$2,$3)`,
+			[employeeId, emailMessage, messageTemplate],
+		);
+		return result.rows[0].emailId;
 	};
 
 	getContext = async (employeeId: string) => {

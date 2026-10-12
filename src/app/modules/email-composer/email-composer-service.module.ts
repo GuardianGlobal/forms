@@ -11,6 +11,7 @@ import type {
 	SignatureSection,
 	SummarySection,
 } from './email-composer-service.schema.js';
+import { randomUUID } from 'node:crypto';
 
 export class EmailComposerService {
 	constructor(private readonly context: EmailContext) {}
@@ -58,7 +59,7 @@ export class EmailComposerService {
 			subject: 'Action required: employee documents',
 			text: rendered.map((section) => section.text).join('\n\n'),
 			html: rendered.map((section) => section.html).join('\n'),
-			correlationId: context.employee.employeeId,
+			idempotencyKey: randomUUID(),
 		};
 	}
 

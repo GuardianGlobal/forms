@@ -1,8 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-export type AgencyDatabaseConfig = Awaited<
-	ReturnType<typeof resolveTenantRuntimeDbClientConfig>
->;
+export type AgencyDatabaseConfig = Awaited<ReturnType<typeof resolveTenantRuntimeDbClientConfig>>;
 
 export type TenantRuntimeCredentials = {
 	password: string;
@@ -54,10 +52,7 @@ async function resolveSsl() {
 	};
 }
 
-async function resolveBaseConfig(
-	database: string,
-	applicationName: string,
-) {
+async function resolveBaseConfig(database: string, applicationName: string) {
 	if (database.trim().length === 0) {
 		throw new Error('Database name must not be blank');
 	}
@@ -109,13 +104,13 @@ export function createTenantRuntimeDbClientConfigResolver(
 	};
 }
 
-export async function resolveControlBootstrapDbClientConfig(): Promise<AgencyDatabaseConfig> {
+export async function resolveControlDbClientConfig(): Promise<AgencyDatabaseConfig> {
 	return {
 		...(await resolveBaseConfig(
 			process.env.CONTROL_DB_NAME ?? 'control',
 			'guardian-control-bootstrap',
 		)),
-		user: requireEnvironmentVariable('CONTROL_BOOTSTRAP_DB_USER'),
-		password: requireEnvironmentVariable('CONTROL_BOOTSTRAP_DB_PWD'),
+		user: requireEnvironmentVariable('CONTROL_DB_USER'),
+		password: requireEnvironmentVariable('CONTROL_DB_PWD'),
 	};
 }

@@ -90,5 +90,5 @@ export interface EmailMessage {
 	subject: string;
 	text: string;
 	html: string;
-	correlationId: string;
+	idempotencyKey: string;
 }

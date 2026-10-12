@@ -1,0 +1,27 @@
+{
+	"id": "manage_email_messages.json",
+	"functions": [
+		{
+			"signature": "api.register_email_message(text, jsonb)",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"table": "public.outbound_emails",
+					"privileges": ["INSERT", "SELECT"]
+				}
+			]
+		},
+		{
+			"signature": "api.get_email_message(text, text, uuid)",
+			"domain": "general",
+			"expose": true,
+			"access": [
+				{
+					"table": "public.outbound_emails",
+					"privileges": ["SELECT"]
+				}
+			]
+		}
+	]
+}

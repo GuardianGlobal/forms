@@ -63,7 +63,7 @@
 			]
 		},
 		{
-			"signature": "api.build_form_component_manifest(text,uuid,timestamptz)",
+			"signature": "api.build_form_component_manifest(text,uuid)",
 			"domain": "general",
 			"expose": false,
 			"access": [
@@ -90,7 +90,7 @@
 			]
 		},
 		{
-			"signature": "api.initialize_employee_requirements(text,uuid)",
+			"signature": "api.initialize_employee_requirements(text)",
 			"domain": "general",
 			"expose": false,
 			"access": [
@@ -123,7 +123,7 @@
 					"privileges": ["SELECT"]
 				},
 				{
-					"function": "api.build_form_component_manifest(text,uuid,timestamptz)",
+					"function": "api.build_form_component_manifest(text,uuid)",
 					"privileges": ["EXECUTE"]
 				}
 			]

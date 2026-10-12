@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	createTenantRuntimeDbClientConfigResolver,
-	resolveControlBootstrapDbClientConfig,
+	resolveControlDbClientConfig,
 	resolveTenantRuntimeDbClientConfig,
 	resolveTenantRuntimeRoleName,
 } from './resolve-db-client-config.js';
@@ -21,7 +21,7 @@ describe('database client configuration', () => {
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
 
-		await expect(resolveControlBootstrapDbClientConfig()).resolves.toEqual({
+		await expect(resolveControlDbClientConfig()).resolves.toEqual({
 			host: 'database.internal',
 			port: 5432,
 			database: 'control',
@@ -59,10 +59,7 @@ describe('database client configuration', () => {
 			user: 'guardian_runtime_role',
 			password: 'guardian:guardian_runtime_role:secret',
 		});
-		expect(credentialProvider).toHaveBeenCalledWith(
-			'guardian',
-			'guardian_runtime_role',
-		);
+		expect(credentialProvider).toHaveBeenCalledWith('guardian', 'guardian_runtime_role');
 	});
 
 	it('rejects agency IDs that cannot safely form database and role names', () => {
@@ -76,7 +73,7 @@ describe('database client configuration', () => {
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
 
-		await expect(resolveControlBootstrapDbClientConfig()).rejects.toThrow(
+		await expect(resolveControlDbClientConfig()).rejects.toThrow(
 			'Required environment variable is missing: DB_HOST',
 		);
 	});
@@ -86,7 +83,7 @@ describe('database client configuration', () => {
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
 		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
 
-		await expect(resolveControlBootstrapDbClientConfig()).rejects.toThrow(
+		await expect(resolveControlDbClientConfig()).rejects.toThrow(
 			'DB_PORT must be an integer between 1 and 65535',
 		);
 	});
