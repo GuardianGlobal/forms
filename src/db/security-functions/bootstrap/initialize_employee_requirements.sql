@@ -106,78 +106,48 @@ $$;
 
 CREATE OR REPLACE FUNCTION api.build_form_component_manifest(
     p_employee_id text,
-    p_form_id uuid,
-    p_expires_at timestamptz
+    p_config_version_id uuid
 )
 RETURNS uuid
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    v_employee_id text;
-    v_component_id uuid;
-    v_manifest jsonb;
 BEGIN
-    IF p_form_id IS NULL OR p_employee_id IS NULL THEN
-        RAISE EXCEPTION 'Employee ID and form ID are required';
-    END IF;
-    PERFORM pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtextextended(p_form_id::text, 0)
-    );
-    SELECT ef.employee_id::text INTO v_employee_id
-    FROM public.employee_forms AS ef 
-    WHERE ef.form_id = p_form_id;
-    IF FOUND THEN
-        IF v_employee_id <> p_employee_id THEN
-            RAISE EXCEPTION 'Form belongs to a different employee';
-        END IF;
-        RETURN p_form_id;
-    END IF;
-    IF p_expires_at IS NULL OR p_expires_at <= clock_timestamp() THEN
-        RAISE EXCEPTION 'Form expiration must be in the future';
+    IF NULL IF(btrim(p_employee_id), '') IS NULL
+        OR p_config_version_id IS NULL THEN
+            RAISE EXCEPTION 'Employee ID and config version ID are required';
     END IF;
 
-    SELECT jsonb_build_object(
-        'schemaVersion', 1,
-        'formId', p_form_id,
-        'employeeId', p_employee_id,
-        'requirements', COALESCE(jsonb_agg(
-            jsonb_build_object(
-                'requirementId', er.requirement_id,
-                'requirementTypeId', er.requirement_type_id,
-                'configVersionId', er.config_version_id,
-                'label', rt.display_name,
-                'status', er.status,
-                'requiresDocument', rt.requires_document,
-                'requiresInPerson', rt.in_person_only,
-                'containsSensitiveInformation', rt.contains_sensitive_info,
-                'canExpire', rt.can_expire,
-                'collectionSteps', rt.collection_steps
-            ) ORDER BY rt.display_name, er.requirement_id
-        ), '[]'::jsonb)
-    ) INTO v_manifest
+    INSERT INTO public.employee_forms (
+        config_version_id,
+        requirement_type_id,
+        component_id,
+        employee_id
+    )
+    SELECT 
+        er.employee_id, 
+        fc.component_id,
+        fc.component_id,
+        er.employee_id
     FROM public.employee_requirements AS er
     JOIN public.requirement_types AS rt
         ON rt.config_version_id = er.config_version_id
         AND rt.requirement_type_id = er.requirement_type_id
+    JOIN public.form_components AS fc
+        ON fc.requirement_config_id = er.requirement_config_id
+        AND fc.requirement_type_id = er.requirement_type_id
     WHERE er.employee_id = p_employee_id
-        AND er.status <> 'complete'
-        AND EXISTS (
-            SELECT 1 FROM public.requirement_issues AS ri
-            WHERE ri.requirement_id = er.requirement_id AND ri.status = 'open'
-        );
-
-    INSERT INTO public.form_components (display_name, config, expires_at)
-    VALUES ('Employee onboarding requirements', v_manifest, p_expires_at)
-    RETURNING component_id INTO v_component_id;
-    INSERT INTO public.employee_forms (form_id, component_id, employee_id)
-    VALUES (p_form_id, v_component_id, p_employee_id);
-    RETURN p_form_id;
+        AND er.config_version_id = p_config_version_id
+        AND rt.is_automated = TRUE
+        AND rt.is_internal = FALSE
+        AND fc.is_latest = TRUE
+        AND fc.expires_at > CURRENT_TIMESTAMP
+    ON CONFLICT ON CONSTRAINT employee_forms_pk
+        DO NOTHING;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION api.initialize_employee_requirements(
     p_employee_id text,
-    p_form_id uuid
 )
 RETURNS TABLE (
     "employeeId" text,
@@ -198,39 +168,17 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_config_version_id uuid;
     v_job_title text;
     v_action_due_days integer;
     v_existing_employee_id text;
 BEGIN
-    IF p_form_id IS NULL OR p_employee_id IS NULL THEN
-        RAISE EXCEPTION 'Employee ID and form ID are required';
+    IF p_employee_id IS NULL THEN
+        RAISE EXCEPTION 'Employee ID is required';
     END IF;
 
-    PERFORM pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtextextended(p_form_id::text, 0)
-    );
-
-    SELECT e.job_code INTO v_job_title
-    FROM public.employees AS e
-    WHERE e.employee_id = p_employee_id;
-
-    IF NULLIF(btrim(v_job_title), '') IS NULL THEN
-        RAISE EXCEPTION 'Missing job title. Check employeeId';
-    END IF;
-
-    SELECT ef.employee_id::text INTO v_existing_employee_id
-    FROM public.employee_forms AS ef 
-    WHERE ef.form_id = p_form_id;
-    IF FOUND THEN
-        IF v_existing_employee_id <> p_employee_id THEN
-            RAISE EXCEPTION 'Form belongs to a different employee';
-        END IF;
-        RETURN QUERY SELECT context.* FROM api.get_context(p_employee_id) AS context;
-        RETURN;
-    END IF;
-
-    SELECT rc.action_due_days
-    INTO STRICT v_action_due_days
+    SELECT rc.config_version_id, rc.action_due_days
+    INTO STRICT v_config_version_id, v_action_due_days
     FROM public.requirement_configs AS rc
     WHERE rc.status = 'ACTIVE'
     FOR SHARE;
@@ -251,15 +199,16 @@ BEGIN
         DO NOTHING;
 
     PERFORM api.populate_employee_requirement_issues(
+        requirement_config,
         p_employee_id,
         CURRENT_DATE + v_action_due_days
     );
 
     PERFORM api.build_form_component_manifest(
-        p_employee_id, p_form_id, CURRENT_DATE + v_action_due_days
+        p_employee_id, v_config_version_id, CURRENT_DATE + v_action_due_days
     );
     RETURN QUERY
-    SELECT context.*
-    FROM api.get_context(p_employee_id) AS context;   
+        SELECT context.*
+        FROM api.get_context(p_employee_id) AS context;   
 END;
 $$;

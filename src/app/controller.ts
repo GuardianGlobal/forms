@@ -16,9 +16,9 @@ app.get('/', getMain);
 |										Employee Submissions Handlers									       |
 |																											   |
 /-------------------------------------------------------------------------------------------------------------*/
-
-app.post('/employee-info', postEmployeeInfo);
-app.post('/employee-documents', postEmployeeDocuments);
+app.post('/onboarding-start')
+app.post('/onboarding', postEmployeeInfo);
+app.post('/forms/:id', postEmployeeDocuments);
 
 /*-------------------------------------------------------------------------------------------------------------/
 |																											   |

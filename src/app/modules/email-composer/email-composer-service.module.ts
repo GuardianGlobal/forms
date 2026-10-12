@@ -1,28 +1,23 @@
 import { EmailMessageRepository } from '#src/db/email-message-repo/email-message-repository.module.js';
-import { type EmailMessage } from '#src/integrations/email-adapter.schema.js';
-import { EmailCompositionKit as c } from './email-composition-kit.lib.js';
+import { EmailCompositionKit as c } from '#src/app/modules/email-composer/email-composition-kit.lib.js';
 import type {
 	DeadlineSection,
 	EmailComposition,
 	EmailContext,
+	EmailMessage,
 	GreetingSection,
 	IssuesSection,
 	RenderedEmailSection,
 	SignatureSection,
 	SummarySection,
 } from './email-composer-service.schema.js';
-import { Errors } from '#src/http/errors.js';
 
 export class EmailComposerService {
-	constructor(private readonly messageRepo: EmailMessageRepository) {}
+	constructor(private readonly context: EmailContext) {}
 
-	public composeEmail = async (employeeId: string): Promise<EmailMessage> => {
-		const context = await this.messageRepo.getContext(employeeId);
-		if (!context) {
-			throw Errors.notFound();
-		}
+	public composeEmail = (employeeId: string): EmailMessage => {
 		const composition = this.createComposition();
-		return this.renderEmail(context, composition);
+		return this.renderEmail(this.context, composition);
 	};
 
 	public createComposition(): EmailComposition {

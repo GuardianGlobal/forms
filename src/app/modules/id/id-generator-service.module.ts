@@ -24,6 +24,9 @@ export class IdGeneratorService {
 			this.getDobCodes(employee.dateOfBirth),
 		); // 43030414001
 		const ids: string[] = await this.employeeInfoRepo.getEmployeeIds(baseId);
+		const getNewId = (base: string, collision: string): string => {
+			return base + collision;
+		};
 		const incrementColSeq = () => {
 			collisionCounter++;
 			switch (String(collisionCounter).length) {
@@ -39,7 +42,7 @@ export class IdGeneratorService {
 		};
 
 		// C + D
-		const newId = baseId + collisionSequence;
+		let newId = getNewId(baseId, collisionSequence);
 		for (const id of ids) {
 			if (id === newId) {
 				const result: SensitiveInfo | null = await this.employeeInfoRepo.idExists(newId);
@@ -54,6 +57,7 @@ export class IdGeneratorService {
 					}
 				}
 				incrementColSeq();
+				newId = getNewId(baseId, collisionSequence);
 			} else {
 				break;
 			}

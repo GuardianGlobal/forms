@@ -1,4 +1,4 @@
-import { bullFlowMangaer, clientPoolManager } from '#src/app/dependencies.js';
+import { bullFlowManager, clientPoolManager } from '#src/app/dependencies.js';
 import { bullQueueManager, bullWorkerManager } from '#src/app/dependencies.js';
 import { employeeInfoSubmissionSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
@@ -16,9 +16,9 @@ export const postEmployeeInfo = async (request: Request, response: Response) => 
 		const orchestrator = createOnboardingOrchestrator(pgClient, [
 			bullWorkerManager,
 			bullQueueManager,
-			bullFlowMangaer,
-		]);
-		await orchestrator.handleSubmission(employee);
+			bullFlowManager,
+		] as const);
+		await orchestrator.handleSubmission(employee, pgClient);
 	});
 	//success
 	response.writeHead(201);

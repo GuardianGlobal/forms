@@ -3,6 +3,7 @@ import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.mod
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.schema.js';
 import { bullResolver } from '#src/bullmq/bull-resolver.js';
+import { PoolClient } from 'pg';
 
 export class OnboardingSubmissionOrchestrator {
 	constructor(
@@ -10,14 +11,16 @@ export class OnboardingSubmissionOrchestrator {
 		private readonly idGenerator: IdGeneratorService,
 		private readonly employeeInfoRepo: EmployeeInfoRepository,
 	) {}
-	async handleSubmission(employee: EmployeeInfoSubmission): Promise<void> {
-		const queueName = 'onboarding';
+	async handleSubmission(employee: EmployeeInfoSubmission, client: PoolClient): Promise<void> {
+		const queueName = 'onboarding-tasks';
 		const employeeId = await this.idGenerator.createEmployeeId(employee);
-		const queue = bullResolver(this.bullMqs, employee.agencyId, 'QUEUE', queueName);
 		await this.employeeInfoRepo.insertEmployeeRecord(employeeId, employee);
-		await queue.add(queueName, {
-			operationId: employee.operationId,
+
+		//build requirements
+		const queue = bullResolver(this.bullMqs, employee.agencyId, 'QUEUE', queueName);
+		queue.add(queueName, {
 			employeeId,
+			client,
 		});
 	}
 }

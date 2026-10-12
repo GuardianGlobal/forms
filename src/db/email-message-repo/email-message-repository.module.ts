@@ -1,9 +1,11 @@
 import { PoolClient } from 'pg';
 import type {
 	EmailContext,
+	EmailMessage,
 	RequirementIssue,
 	RequirementIssueCode,
-} from '#src/integrations/email-composer/email-composer-service.schema.js';
+} from '#src/app/modules/email-composer/email-composer-service.schema.js';
+import type { CreateEmailOptions } from 'resend';
 
 export type EmailContextRow = {
 	employeeId: string;
@@ -84,6 +86,26 @@ export class EmailMessageRepository {
 		private readonly agency: EmailContext['agency'],
 		private readonly client: PoolClient,
 	) {}
+
+	getEmailMessage = async (emailId: string, employeeId: string): Promise<CreateEmailOptions> => {
+		const result = await this.client.query<CreateEmailOptions>(
+			`SELECT api.get_email_message($1, $2)`,
+			[emailId, employeeId],
+		);
+		return result.rows[0];
+	};
+
+	registerEmailMessage = async (
+		employeeId: string,
+		emailMessage: EmailMessage,
+	): Promise<string> => {
+		const result = await this.client.query(`SELECT api.registerEmailMessage($1,$2)`, [
+			employeeId,
+			emailMessage,
+		]);
+		return result.rows[0];
+	};
+
 	getContext = async (employeeId: string) => {
 		const agency = this.agency;
 		const result = await this.client.query<EmailContextRow>(

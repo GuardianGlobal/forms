@@ -5,7 +5,7 @@ import {
 	clientPoolManager,
 	bullWorkerManager,
 	bullQueueManager,
-	bullFlowMangaer,
+	bullFlowManager,
 } from '#src/app/dependencies.js';
 import { errorHandler } from '#src/http/error-handler.middleware.js';
 import { postEmployeeInfo } from './post-employee-info.route.js';
@@ -15,7 +15,7 @@ vi.mock('#src/app/dependencies.js', () => ({
 	clientPoolManager: { withClient: vi.fn() },
 	bullWorkerManager: { getWorker: vi.fn(), endAll: vi.fn() },
 	bullQueueManager: { getQueue: vi.fn(), endAll: vi.fn() },
-	bullFlowMangaer: { getFlowProducer: vi.fn(), endAll: vi.fn() },
+	bullFlowManager: { getFlowProducer: vi.fn(), endAll: vi.fn() },
 }));
 vi.mock('./post-employee-info.composition.js', () => ({
 	createOnboardingOrchestrator: vi.fn(),
@@ -92,7 +92,7 @@ describe('POST /employee-info', () => {
 		expect(createOnboardingOrchestrator).toHaveBeenCalledWith(client, [
 		bullWorkerManager,
 		bullQueueManager,
-		bullFlowMangaer,
+		bullFlowManager,
 	]);
 		expect(handleSubmission).toHaveBeenCalledWith(submission);
 		expect(spies.writeHead).toHaveBeenCalledWith(201);

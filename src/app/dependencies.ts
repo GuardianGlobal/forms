@@ -6,4 +6,4 @@ import { BullFlowManager } from '#src/bullmq/modules/bull-flow-manager.module.js
 export const clientPoolManager = new ClientPoolManager();
 export const bullQueueManager = new BullQueueManager();
 export const bullWorkerManager = new BullWorkerManager();
-export const bullFlowMangaer = new BullFlowManager();
+export const bullFlowManager = new BullFlowManager();

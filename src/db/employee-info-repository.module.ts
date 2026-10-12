@@ -6,6 +6,7 @@ import type {
 } from '#src/app/modules/id/id-generator-service.schema.js';
 import { decryptSsn } from '#src/util/encrypt-ssn.js';
 import { formatSensitiveData } from '#src/util/format-sensitive-data.js';
+import { EmailContext } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 
 export class EmployeeInfoRepository {
 	constructor(private readonly client: PoolClient) {}
@@ -67,5 +68,12 @@ export class EmployeeInfoRepository {
 				sensitive.last4,
 			],
 		);
+	}
+	async initializeEmployeeRequirements(employeeId: string): Promise<EmailContext> {
+		const result = await this.client.query<EmailContext>(
+			`SELECT * FROM api.initialize_employee_requirements($1)`,
+			[employeeId],
+		);
+		return result.rows[0];
 	}
 }

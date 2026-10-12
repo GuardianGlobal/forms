@@ -3,7 +3,7 @@ import {
 	clientPoolManager,
 	bullQueueManager,
 	bullWorkerManager,
-	bullFlowMangaer,
+	bullFlowManager,
 } from '#src/app/dependencies.js';
 import { gracefulShutdown } from '#src/app/graceful-shutdown.js';
 
@@ -17,7 +17,7 @@ export const server = app.listen({ hostname, port }, () =>
 const shutdown = gracefulShutdown({
 	server,
 	poolManagers: [clientPoolManager],
-	bullMqs: [bullWorkerManager, bullQueueManager, bullFlowMangaer],
+	bullMqs: [bullWorkerManager, bullQueueManager, bullFlowManager] as const,
 });
 
 process.on('SIGTERM', shutdown);

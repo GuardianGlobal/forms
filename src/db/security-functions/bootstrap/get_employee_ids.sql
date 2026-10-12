@@ -15,7 +15,6 @@ BEGIN
     INTO ids
     FROM public.employees
     WHERE employee_id LIKE p_base_id || '%';
-
     RETURN ids;
 END;
 $$;

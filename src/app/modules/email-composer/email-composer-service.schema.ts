@@ -1,9 +1,4 @@
-export type RequirementIssueCode =
-	| 'MISSING'
-	| 'UNREADABLE'
-	| 'INVALID'
-	| 'EXPIRING'
-	| 'EXPIRED';
+export type RequirementIssueCode = 'MISSING' | 'UNREADABLE' | 'INVALID' | 'EXPIRING' | 'EXPIRED';
 
 export interface RequirementIssue {
 	issueId: string;
@@ -88,4 +83,12 @@ export interface EmailComposition {
 export interface RenderedEmailSection {
 	text: string;
 	html: string;
+}
+
+export interface EmailMessage {
+	to: string;
+	subject: string;
+	text: string;
+	html: string;
+	correlationId: string;
 }

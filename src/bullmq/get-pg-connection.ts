@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export function getPgConnection(agencyId: string): { connection: string } {
-	const hostVar = 'DB_HOST';
+	const hostVar = `DB_HOST`;
 	const host = z
 		.string({
 			error: `Environment variable ${hostVar} not found. Can't build config for PostgreSQL`,
@@ -48,4 +48,6 @@ export function getPgConnection(agencyId: string): { connection: string } {
 		`@${uriHost}:${port}/${encodeURIComponent(database)}`;
 
 	return { connection };
+
+	('\n');
 }

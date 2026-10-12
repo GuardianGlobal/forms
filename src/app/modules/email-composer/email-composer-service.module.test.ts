@@ -3,8 +3,8 @@ import {
 	type EmailContextRow,
 	EmailMessageRepository,
 } from '#src/db/email-message-repo/email-message-repository.module.js';
-import { EmailComposerService } from '#src/integrations/email-composer/email-composer-service.module.js';
-import type { EmailContext } from '#src/integrations/email-composer/email-composer-service.schema.js';
+import { EmailComposerService } from '#src/app/modules/email-composer/email-composer-service.module.js';
+import type { EmailContext } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 import { Pool, PoolClient } from 'pg';
 const identificationRequirementTypeId = '00000000-0000-4000-8000-000000000001';
 const trainingRequirementTypeId = '00000000-0000-4000-8000-000000000002';
@@ -91,12 +91,7 @@ type MockPool = Pick<Pool, 'query'>;
 const mockPool: MockPool = { query: vi.fn().mockResolvedValue(contextRows) };
 
 describe('EmailComposerService', () => {
-	const service = new EmailComposerService(
-		new EmailMessageRepository(
-			{ agencyId: 'agency-1', name: 'Guardian' },
-			mockPool as PoolClient,
-		),
-	);
+	const service = new EmailComposerService(context);
 
 	it('creates the reusable document-action composition', () => {
 		expect(service.createComposition().sections.map((section) => section.type)).toEqual([
