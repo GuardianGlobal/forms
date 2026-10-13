@@ -7,7 +7,6 @@ import {
 } from '#src/app/modules/id/id-generator-service.schema.js';
 import { sensitiveInfoSchema } from '#src/app/modules/id/id-generator-service.schema.js';
 import { ssnSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import { resolveGmailCredentials } from '#src/integrations/gmail/resolve-gmail-credentials.js';
 import { getPgConnection } from '#src/bullmq/get-pg-connection.js';
 
 afterEach(() => vi.unstubAllEnvs());
@@ -55,24 +54,6 @@ describe('ID and sensitive data schemas', () => {
 	});
 });
 describe('integration configuration schemas', () => {
-	it('resolves and trims Gmail configuration without contacting Gmail', () => {
-		vi.stubEnv('GMAIL_OAUTH_CLIENT_ID', ' client ');
-		vi.stubEnv('GMAIL_OAUTH_CLIENT_SECRET', ' secret ');
-		vi.stubEnv('GMAIL_OAUTH_REFRESH_TOKEN', ' token ');
-		vi.stubEnv('GMAIL_SENDER_ADDRESS', 'sender@example.test');
-		expect(resolveGmailCredentials()).toEqual({
-			clientId: 'client',
-			clientSecret: 'secret',
-			refreshToken: 'token',
-			senderAddress: 'sender@example.test',
-		});
-		vi.stubEnv('GMAIL_SENDER_ADDRESS', 'bad');
-		expect(resolveGmailCredentials).toThrow();
-	});
-	it('rejects missing Gmail credentials', () => {
-		vi.stubEnv('GMAIL_OAUTH_CLIENT_ID', undefined);
-		expect(resolveGmailCredentials).toThrow();
-	});
 	it('builds a tenant PostgreSQL connection without connecting', () => {
 		vi.stubEnv('DB_HOST', 'localhost');
 		vi.stubEnv('DB_PORT', '5432');

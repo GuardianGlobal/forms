@@ -58,7 +58,7 @@ BEGIN
         (tenant_req.prop ->> 'requirementId')::UUID,
         'CUSTOM',
         tenant_req.prop ->> 'name',
-        (tenant_req.prop ->> 'isFullyAutomated')::BOOLEAN,
+        (tenant_req.prop ->> 'isAutomated')::BOOLEAN,
         (tenant_req.prop ->> 'isInternal')::BOOLEAN,
         (tenant_req.prop ->> 'isDocument')::BOOLEAN,
         (tenant_req.prop ->> 'canExpire')::BOOLEAN,

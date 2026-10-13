@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export interface TenantRequirement {
 	name: string;
-	isFullyAutomated: boolean;
+	isAutomated: boolean;
 	isDocument: boolean;
 	isInternal: boolean;
 	needsSignature: boolean;
@@ -35,7 +35,7 @@ export interface TenantConfigData {
 
 export const tenantRequirementsSchema = z.object({
 	name: z.string().trim().min(1).toUpperCase(),
-	isFullyAutomated: z.boolean(),
+	isAutomated: z.boolean(),
 	isDocument: z.boolean(),
 	isInternal: z.boolean(),
 	needsSignature: z.boolean(),

@@ -110,7 +110,7 @@ export async function resolveControlDbClientConfig(): Promise<AgencyDatabaseConf
 			process.env.CONTROL_DB_NAME ?? 'control',
 			'guardian-control-bootstrap',
 		)),
-		user: requireEnvironmentVariable('CONTROL_DB_USER'),
+		user: requireEnvironmentVariable('CONTROL_DB_USR'),
 		password: requireEnvironmentVariable('CONTROL_DB_PWD'),
 	};
 }

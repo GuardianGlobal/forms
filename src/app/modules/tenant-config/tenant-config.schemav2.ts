@@ -3,7 +3,7 @@ import { z } from 'zod';
 export interface TenantRequirement {
 	requirementId: string;
 	name: string;
-	isFullyAutomated: boolean;
+	isAutomated: boolean;
 	isDocument: boolean;
 	isInternal: boolean;
 	needsSignature: boolean;
@@ -45,7 +45,7 @@ export const ONetJobCodeSchema = z
 export const tenantRequirementSchema = z.object({
 	requirementId: z.uuid().toLowerCase(),
 	name: z.string().trim().min(1).toUpperCase(),
-	isFullyAutomated: z.boolean(),
+	isAutomated: z.boolean(),
 	isDocument: z.boolean(),
 	isInternal: z.boolean(),
 	needsSignature: z.boolean(),

@@ -1,8 +1,8 @@
 {
-	"id": "manage_email_messages.json",
+	"id": "manage_email_messages",
 	"functions": [
 		{
-			"signature": "api.register_email_message(text, jsonb)",
+			"signature": "api.register_email_message(text, jsonb, text)",
 			"domain": "general",
 			"expose": true,
 			"access": [

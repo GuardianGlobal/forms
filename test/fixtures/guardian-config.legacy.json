@@ -17,7 +17,7 @@
 	"baseRequirements": [
 		{
 			"name": "Social Security Card",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": true,
 			"isInternal": false,
 			"needsSignature": false,
@@ -28,7 +28,7 @@
 		},
 		{
 			"name": "ID",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": true,
 			"isInternal": false,
 			"needsSignature": false,
@@ -39,7 +39,7 @@
 		},
 		{
 			"name": "Employee Info",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": true,
 			"isInternal": false,
 			"needsSignature": false,
@@ -50,7 +50,7 @@
 		},
 		{
 			"name": "Handbook Acknowledgement",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": true,
 			"isInternal": false,
 			"needsSignature": true,
@@ -61,7 +61,7 @@
 		},
 		{
 			"name": "I-9",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": true,
 			"isInternal": false,
 			"needsSignature": true,
@@ -72,7 +72,7 @@
 		},
 		{
 			"name": "Onboarding Document",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isDocument": false,
 			"isInternal": false,
 			"needsSignature": false,
@@ -83,7 +83,7 @@
 		},
 		{
 			"name": "Background Check",
-			"isFullyAutomated": false,
+			"isAutomated": false,
 			"isInternal": true,
 			"isDocument": true,
 			"needsSignature": true,
@@ -94,7 +94,7 @@
 		},
 		{
 			"name": "Direct Deposit",
-			"isFullyAutomated": true,
+			"isAutomated": true,
 			"isInternal": false,
 			"isDocument": true,
 			"needsSignature": true,
@@ -105,7 +105,7 @@
 		},
 		{
 			"name": "Orientation",
-			"isFullyAutomated": false,
+			"isAutomated": false,
 			"isInternal": false,
 			"isDocument": false,
 			"needsSignature": true,
@@ -116,7 +116,7 @@
 		},
 		{
 			"name": "GeoH Onboarding",
-			"isFullyAutomated": false,
+			"isAutomated": false,
 			"isInternal": false,
 			"isDocument": false,
 			"needsSignature": false,
@@ -127,7 +127,7 @@
 		},
 		{
 			"name": "ADP Onboarding",
-			"isFullyAutomated": false,
+			"isAutomated": false,
 			"isInternal": false,
 			"isDocument": false,
 			"needsSignature": false,
@@ -138,7 +138,7 @@
 		},
 		{
 			"name": "OIG Exclusions",
-			"isFullyAutomated": false,
+			"isAutomated": false,
 			"isInternal": true,
 			"isDocument": true,
 			"needsSignature": false,
@@ -154,7 +154,7 @@
 			"requirements": [
 				{
 					"name": "CPR Cert",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -165,7 +165,7 @@
 				},
 				{
 					"name": "TB Test",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -176,7 +176,7 @@
 				},
 				{
 					"name": "Skills Test",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": false,
 					"needsSignature": true,
@@ -187,7 +187,7 @@
 				},
 				{
 					"name": "RN License",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -198,7 +198,7 @@
 				},
 				{
 					"name": "Degree",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": true,
 					"isInternal": true,
 					"needsSignature": false,
@@ -209,7 +209,7 @@
 				},
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -225,7 +225,7 @@
 			"requirements": [
 				{
 					"name": "CPR Cert",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -236,7 +236,7 @@
 				},
 				{
 					"name": "TB Test",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -247,7 +247,7 @@
 				},
 				{
 					"name": "Skills Test",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": false,
 					"needsSignature": true,
@@ -258,7 +258,7 @@
 				},
 				{
 					"name": "RN License",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -269,7 +269,7 @@
 				},
 				{
 					"name": "Degree",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": true,
 					"isInternal": true,
 					"needsSignature": false,
@@ -280,7 +280,7 @@
 				},
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -296,7 +296,7 @@
 			"requirements": [
 				{
 					"name": "CPR Cert",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -307,7 +307,7 @@
 				},
 				{
 					"name": "TB Test",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -318,7 +318,7 @@
 				},
 				{
 					"name": "Skills Test",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": false,
 					"needsSignature": true,
@@ -329,7 +329,7 @@
 				},
 				{
 					"name": "RN License",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -340,7 +340,7 @@
 				},
 				{
 					"name": "Degree",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": true,
 					"isInternal": true,
 					"needsSignature": false,
@@ -351,7 +351,7 @@
 				},
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -367,7 +367,7 @@
 			"requirements": [
 				{
 					"name": "CPR Cert",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -378,7 +378,7 @@
 				},
 				{
 					"name": "TB Test",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -389,7 +389,7 @@
 				},
 				{
 					"name": "Skills Test",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": false,
 					"needsSignature": true,
@@ -400,7 +400,7 @@
 				},
 				{
 					"name": "CNA License",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -411,7 +411,7 @@
 				},
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -427,7 +427,7 @@
 			"requirements": [
 				{
 					"name": "CPR Cert",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -438,7 +438,7 @@
 				},
 				{
 					"name": "TB Test",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,
@@ -449,7 +449,7 @@
 				},
 				{
 					"name": "Skills Test",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": false,
 					"needsSignature": true,
@@ -460,7 +460,7 @@
 				},
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -476,7 +476,7 @@
 			"requirements": [
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -492,7 +492,7 @@
 			"requirements": [
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -508,7 +508,7 @@
 			"requirements": [
 				{
 					"name": "Wise",
-					"isFullyAutomated": false,
+					"isAutomated": false,
 					"isDocument": false,
 					"isInternal": true,
 					"needsSignature": false,
@@ -524,7 +524,7 @@
 			"requirements": [
 				{
 					"name": "W-4",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": true,
@@ -540,7 +540,7 @@
 			"requirements": [
 				{
 					"name": "W-9",
-					"isFullyAutomated": true,
+					"isAutomated": true,
 					"isDocument": true,
 					"isInternal": false,
 					"needsSignature": false,

@@ -9,6 +9,7 @@ import {
 describe('database client configuration', () => {
 	beforeEach(() => {
 		vi.stubEnv('DB_HOST', 'database.internal');
+		vi.stubEnv('CONTROL_DB_NAME', 'control');
 		vi.stubEnv('DB_PORT', '5432');
 		vi.stubEnv('DB_SSL_MODE', 'disable');
 	});
@@ -18,8 +19,8 @@ describe('database client configuration', () => {
 	});
 
 	it('uses dedicated credentials for the control bootstrap', async () => {
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
+		vi.stubEnv('CONTROL_DB_USR', 'control_bootstrap');
+		vi.stubEnv('CONTROL_DB_PWD', 'bootstrap-secret');
 
 		await expect(resolveControlDbClientConfig()).resolves.toEqual({
 			host: 'database.internal',
@@ -70,8 +71,8 @@ describe('database client configuration', () => {
 
 	it('fails before connecting when a required setting is absent', async () => {
 		vi.stubEnv('DB_HOST', '');
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
+		vi.stubEnv('CONTROL_DB_USR', 'control_bootstrap');
+		vi.stubEnv('CONTROL_DB_PWD', 'bootstrap-secret');
 
 		await expect(resolveControlDbClientConfig()).rejects.toThrow(
 			'Required environment variable is missing: DB_HOST',
@@ -80,8 +81,8 @@ describe('database client configuration', () => {
 
 	it('rejects invalid ports', async () => {
 		vi.stubEnv('DB_PORT', 'not-a-port');
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_USER', 'control_bootstrap');
-		vi.stubEnv('CONTROL_BOOTSTRAP_DB_PWD', 'bootstrap-secret');
+		vi.stubEnv('CONTROL_DB_USR', 'control_bootstrap');
+		vi.stubEnv('CONTROL_DB_PWD', 'bootstrap-secret');
 
 		await expect(resolveControlDbClientConfig()).rejects.toThrow(
 			'DB_PORT must be an integer between 1 and 65535',

@@ -75,9 +75,9 @@ END;
 $register_email_message$;
 
 CREATE OR REPLACE FUNCTION api.get_email_message(
-    p_sender_address
-    p_employee_id,
-    p_email_id,
+    p_tenant_onboarding_domain text,
+    p_employee_id text,
+    p_email_id uuid
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -85,23 +85,23 @@ AS $get_email_message$
 DECLARE
     v_message jsonb;
 BEGIN
-    IF NULLIF (btrim(p_sender_address)) IS NULL THEN
-        THROW EXCEPTION ('Sender address is required')
+    IF NULLIF (btrim(p_tenant_onboarding_domain), '') IS NULL THEN
+        RAISE EXCEPTION 'Sender address is required';
     END IF;
-    IF NULLIF (btrim(p_employee_id)) IS NULL THEN
-        THROW EXCEPTION ('Employee ID is required')
+    IF NULLIF (btrim(p_employee_id), '') IS NULL THEN
+        RAISE EXCEPTION 'Employee ID is required';
     END IF;
-    IF NULLIF (btrim(p_email_id)) IS NULL THEN
-        THROW EXCEPTION ('Email ID is required')
+    IF NULLIF (btrim(p_email_id), '') IS NULL THEN
+        RAISE EXCEPTION 'Email ID is required';
     END IF;
     SELECT jsonb_strip_nulls(jsonb_build_object(
-            'from', p_sender_address,
+            'from', p_tenant_onboarding_domain,
             'to', oe.recipient_email,
             'subject', oe.rendered_subject,
             'text', oe.rendered_text,
             'html', oe.rendered_html
     ))
-    INTO 
+    INTO v_message
     FROM public.outbound_emails AS oe
     WHERE oe.outbound_email_id = p_email_id
         AND oe.employee_id = p_employee_id;

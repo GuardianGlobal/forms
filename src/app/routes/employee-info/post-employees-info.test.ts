@@ -94,7 +94,7 @@ describe('POST /employee-info', () => {
 		bullQueueManager,
 		bullFlowManager,
 	]);
-		expect(handleSubmission).toHaveBeenCalledWith(submission);
+		expect(handleSubmission).toHaveBeenCalledWith(submission, client);
 		expect(spies.writeHead).toHaveBeenCalledWith(201);
 		expect(spies.end).toHaveBeenCalledWith('Accepted');
 	});

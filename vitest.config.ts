@@ -1,7 +1,8 @@
 import { fileURLToPath } from 'node:url';
+import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	resolve: {
 		alias: {
 			'#src': fileURLToPath(new URL('./src', import.meta.url)),
@@ -12,5 +13,6 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+		env: loadEnv(mode, process.cwd(), ''),
 	},
-});
+}));

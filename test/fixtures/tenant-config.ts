@@ -8,7 +8,7 @@ export function requirement(overrides: Partial<TenantRequirement> = {}): TenantR
 	return {
 		requirementId: '93ba0e50-8b59-4e26-bfb7-dbd7f50733fa',
 		name: 'ID',
-		isFullyAutomated: false,
+		isAutomated: false,
 		isDocument: true,
 		isInternal: false,
 		needsSignature: true,

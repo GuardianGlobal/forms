@@ -109,7 +109,9 @@ describe('EmailComposerService', () => {
 		expect(message).toMatchObject({
 			to: 'avery@example.com',
 			subject: 'Action required: employee documents',
-			correlationId: 'employee-1',
+			idempotencyKey: expect.stringMatching(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+			),
 		});
 		expect(message.text).toContain('This request needs your immediate attention.');
 		expect(message.text).toContain('Please replace your expired identification.');

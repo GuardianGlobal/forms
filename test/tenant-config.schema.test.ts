@@ -36,7 +36,7 @@ describe('tenant configuration validation', () => {
 		expect(ONetJobCodeSchema.parse(code)).toBe(code);
 	});
 	it.each([
-		'isFullyAutomated',
+		'isAutomated',
 		'isDocument',
 		'isInternal',
 		'needsSignature',

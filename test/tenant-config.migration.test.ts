@@ -6,7 +6,7 @@ import { tenantConfigSchema } from '#src/app/modules/tenant-config/tenant-config
 
 const dbRoot = resolve(process.env.GUARDIAN_DB_PATH ?? '../../guardian-db');
 const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
-const fixture = readJson('src/submissions/guardian-requirements.json');
+const fixture = readJson('submissions/guardian-requirements.json');
 const legacy = readJson('test/fixtures/guardian-config.legacy.json');
 const mapping: Record<string, string> = readJson('test/fixtures/guardian-job-code-mapping.json');
 const seed = readFileSync(
@@ -20,11 +20,14 @@ const catalog = readJson(resolve(dbRoot, 'O*NET/occupations.json')).occupations 
 }>;
 
 describe('Guardian configuration migration', () => {
-	it('has the same valid payload in JSON and bootstrap SQL', () => {
+	it('has a valid current JSON payload with all requirements', () => {
+		expect(tenantConfigSchema.parse(fixture)).toEqual(fixture);
+		expect(fixture.requirements).toHaveLength(21);
+	});
+	it('keeps the bootstrap SQL payload aligned with the current JSON schema', () => {
 		const embedded = JSON.parse(seed.split('$guardian_config$')[1]);
 		expect(embedded).toEqual(fixture);
 		expect(tenantConfigSchema.parse(embedded)).toEqual(fixture);
-		expect(fixture.requirements).toHaveLength(21);
 	});
 	it.each(Object.keys(mapping))(
 		'preserves all requirement flags and assignments for %s',
