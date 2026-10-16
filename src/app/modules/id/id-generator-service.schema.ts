@@ -1,4 +1,8 @@
-import { ssnSchema } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import {
+	EmployeeInfoSubmission,
+	ssnSchema,
+} from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import { QueryResultRow } from 'pg';
 import { z } from 'zod';
 
@@ -24,9 +28,7 @@ const dateCodeSchema = z
 	.transform((str, context) => {
 		const groups = str.match(dateRegex)?.groups;
 		if (!groups) {
-			context.addIssue(
-				'No matches found with regular expression:\n\t/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/',
-			);
+			context.addIssue('No matches found with regular expression:\n\t/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/');
 			return z.NEVER;
 		}
 		return {
@@ -54,12 +56,8 @@ export const sensitiveInfoSchema = z.object({
 });
 
 export type SensitiveInfo = z.output<typeof sensitiveInfoSchema>;
+export type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds' | 'idExists'>;
+export type EmployeeIdInfo = Pick<EmployeeInfoSubmission, 'firstName' | 'lastName' | 'dateOfBirth' | 'socialSecurityNumber'>;
 
-export {
-	zeroNineNumberSchema,
-	zeroNineArraySchema,
-	dateCodeSchema,
-	stringCharacterSchema,
-	employeeIdSchema,
-};
+export { zeroNineNumberSchema, zeroNineArraySchema, dateCodeSchema, stringCharacterSchema, employeeIdSchema };
 export type { ZeroNineArray };

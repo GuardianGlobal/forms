@@ -1,28 +1,43 @@
 import type { PoolClient } from 'pg';
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
-import type {
-	EncryptedSsnRow,
-	SensitiveInfo,
-} from '#src/app/modules/id/id-generator-service.schema.js';
+import type { EncryptedSsnRow, SensitiveInfo } from '#src/app/modules/id/id-generator-service.schema.js';
 import { decryptSsn } from '#src/util/encrypt-ssn.js';
 import { formatSensitiveData } from '#src/util/format-sensitive-data.js';
-import { EmailContext } from '#src/app/modules/email-composer/email-composer-service.schema.js';
+import { EmailContext, RequirementIssueCode } from '#src/app/modules/email-composer/email-composer-service.schema.js';
+import { getTenantOnboardingDomain } from '#src/util/get-tenant-onboarding-domain.js';
+
+export interface EmployeeRequirementsInitConfig {
+	agencyId: string;
+	name: string;
+	employeeId: string;
+}
+
+interface QResult {
+	employeeId: string;
+	firstName: string;
+	email: string;
+	issueId: string;
+	issueCode: RequirementIssueCode;
+	requirementTypeId: string;
+	requirementDisplayName: string;
+	textTemplate: string;
+	htmlTemplate: string | null;
+	expiresOn: Date | null;
+	actionDueAt: Date;
+	requiresInPerson: boolean;
+	containsSensitiveInformation: boolean;
+	deadline: Date;
+}
 
 export class EmployeeInfoRepository {
 	constructor(private readonly client: PoolClient) {}
 
 	async getEmployeeIds(baseId: string): Promise<string[]> {
-		const result = await this.client.query<{ ids: string[] }>(
-			'SELECT api.get_employee_ids($1) AS ids;',
-			[baseId],
-		);
+		const result = await this.client.query<{ ids: string[] }>('SELECT api.get_employee_ids($1) AS ids;', [baseId]);
 		return result.rows[0].ids;
 	}
 	async idExists(employeeId: string): Promise<SensitiveInfo | null> {
-		const result = await this.client.query<EncryptedSsnRow>(
-			'SELECT * FROM api.employee_id_exists($1)',
-			[employeeId],
-		);
+		const result = await this.client.query<EncryptedSsnRow>('SELECT * FROM api.employee_id_exists($1)', [employeeId]);
 		const row = result.rows[0];
 
 		if (!row) {
@@ -38,10 +53,7 @@ export class EmployeeInfoRepository {
 			}),
 		};
 	}
-	async insertEmployeeRecord(
-		employeeId: string,
-		employee: EmployeeInfoSubmission,
-	): Promise<void> {
+	async insertEmployeeRecord(employeeId: string, employee: EmployeeInfoSubmission): Promise<void> {
 		const today = new Date().toISOString().slice(0, 10);
 		const sensitive = formatSensitiveData(employeeId, employee);
 		await this.client.query(
@@ -69,11 +81,40 @@ export class EmployeeInfoRepository {
 			],
 		);
 	}
-	async initializeEmployeeRequirements(employeeId: string): Promise<EmailContext> {
-		const result = await this.client.query<EmailContext>(
-			`SELECT * FROM api.initialize_employee_requirements($1)`,
-			[employeeId],
-		);
-		return result.rows[0];
+
+	async initializeEmployeeRequirements(config: EmployeeRequirementsInitConfig): Promise<EmailContext> {
+		const result = await this.client.query<QResult>(`SELECT * FROM api.initialize_employee_requirements($1)`, [
+			config.employeeId,
+		]);
+		const firstRow = result.rows[0];
+		const issues = result.rows.map((row) => {
+			return {
+				issueId: row.issueId,
+				issueCode: row.issueCode,
+				requirementTypeId: row.requirementTypeId,
+				requirementDisplayName: row.requirementDisplayName,
+				textTemplate: row.textTemplate,
+				htmlTemplate: row.htmlTemplate,
+				expiresOn: row.expiresOn,
+				actionDueAt: row.actionDueAt,
+				requiresInPerson: row.requiresInPerson,
+				containsSensitiveInformation: row.containsSensitiveInformation,
+			};
+		});
+		const tenantDomain = await getTenantOnboardingDomain(config.agencyId);
+		return {
+			employee: {
+				employeeId: firstRow.employeeId,
+				firstName: firstRow.firstName,
+				email: firstRow.email,
+			},
+			agency: {
+				agencyId: config.agencyId,
+				name: config.name,
+			},
+			issues,
+			deadline: firstRow.deadline,
+			formCompletionUrl: `https://${tenantDomain}/forms?id=${config.employeeId}`,
+		};
 	}
 }

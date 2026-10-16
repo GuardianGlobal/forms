@@ -13,12 +13,16 @@ export class OnboardingSubmissionOrchestrator {
 	) {}
 	async handleSubmission(employee: EmployeeInfoSubmission, client: PoolClient): Promise<void> {
 		const queueName = 'onboarding-tasks';
+		const agencyId = employee.agencyId;
+		const agencyName = employee.agencyName;
 		const employeeId = await this.idGenerator.createEmployeeId(employee);
 		await this.employeeInfoRepo.insertEmployeeRecord(employeeId, employee);
 
 		//build requirements
 		const queue = bullResolver(this.bullMqs, employee.agencyId, 'QUEUE', queueName);
-		queue.add(queueName, {
+		await queue.add(queueName, {
+			agencyId,
+			agencyName,
 			employeeId,
 			client,
 		});

@@ -58,7 +58,8 @@
 				},
 				{
 					"table": "public.requirement_issues",
-					"privileges": ["INSERT", "SELECT"]
+					"privileges": ["INSERT", "SELECT"],
+					"columns": ["requirement_id", "issue_code", "status", "action_due_on"]
 				}
 			]
 		},
@@ -81,11 +82,12 @@
 				},
 				{
 					"table": "public.form_components",
-					"privileges": ["INSERT", "SELECT"]
+					"privileges": ["SELECT"]
 				},
 				{
 					"table": "public.employee_forms",
-					"privileges": ["INSERT", "SELECT"]
+					"privileges": ["INSERT", "SELECT"],
+					"columns": ["config_version_id", "requirement_type_id", "component_id", "employee_id"]
 				}
 			]
 		},
@@ -104,7 +106,8 @@
 				},
 				{
 					"table": "public.employee_requirements",
-					"privileges": ["INSERT", "SELECT"]
+					"privileges": ["INSERT", "SELECT"],
+					"columns": ["employee_id", "config_version_id", "requirement_type_id", "status"]
 				},
 				{
 					"function": "api.get_job_title_requirements(text)",
@@ -120,7 +123,8 @@
 				},
 				{
 					"table": "public.employee_forms",
-					"privileges": ["SELECT"]
+					"privileges": ["SELECT"],
+					"columns": ["config_version_id", "requirement_type_id", "component_id", "employee_id"]
 				},
 				{
 					"function": "api.build_form_component_manifest(text,uuid)",

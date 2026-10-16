@@ -15,12 +15,15 @@ export const ssnSchema = z
 
 		return area !== 0 && area !== 666 && area < 900 && group !== 0 && serial !== 0;
 	}, 'Invalid Social Security number');
-const phoneNumerSchema = z
-	.string()
-	.trim()
-	.min(3)
-	.max(16)
-	.regex(/^\+[1-9]\d{1,14}$/);
+const phoneNumerSchema = z.union([
+	z
+		.string()
+		.trim()
+		.min(3)
+		.max(16)
+		.regex(/^\+[1-9]\d{1,14}$/),
+	z.null(),
+]);
 const stateCodeSchema = z.string().trim().min(2).max(2);
 const zipCodeSchema = z.string().trim().min(5).max(10);
 
@@ -79,7 +82,7 @@ function isValidBirthDate(date: string) {
 
 	return birthDate <= cutoff;
 }
-const dateOfBirthSchema = z
+export const dateOfBirthSchema = z
 	.union([MMDDYYYYWithSlashesDateSchema, MMDDYYYYWithDashesDateSchema, YYYYMMDDSchema]) // 3000-01-31
 	.refine((birthDate) => isValidBirthDate(birthDate));
 
@@ -90,9 +93,10 @@ export const employeeInfoSubmissionSchema = z.object({
 	firstName: varchar50Schema,
 	lastName: varchar50Schema,
 	preferredName: varchar50NullableSchema,
-	jobTitle: databaseCodeSchema(30),
+	jobCode: databaseCodeSchema(30),
 	employmentStatus: databaseCodeSchema(12),
 	employmentType: databaseCodeSchema(30),
+	noInPerson: z.boolean(),
 	gender: genderAbrevSchema,
 	dateOfBirth: dateOfBirthSchema,
 	socialSecurityNumber: ssnSchema,

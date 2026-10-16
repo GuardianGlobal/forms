@@ -27,7 +27,6 @@ describe('database client configuration', () => {
 			port: 5432,
 			database: 'control',
 			ssl: false,
-			application_name: 'guardian-control-bootstrap',
 			user: 'control_bootstrap',
 			password: 'bootstrap-secret',
 		});
@@ -41,10 +40,9 @@ describe('database client configuration', () => {
 		).resolves.toEqual({
 			host: 'database.internal',
 			port: 5432,
-			database: 'guardian',
+			database: 'guardian_tenant',
 			ssl: false,
-			application_name: 'guardian-tenant-guardian',
-			user: 'guardian_runtime_role',
+			user: 'g_guardian_tenant_runtime',
 			password: 'tenant-secret',
 		});
 	});
@@ -56,17 +54,15 @@ describe('database client configuration', () => {
 		const resolveConfig = createTenantRuntimeDbClientConfigResolver(credentialProvider);
 
 		await expect(resolveConfig('guardian')).resolves.toMatchObject({
-			database: 'guardian',
-			user: 'guardian_runtime_role',
-			password: 'guardian:guardian_runtime_role:secret',
+			database: 'guardian_tenant',
+			user: 'g_guardian_tenant_runtime',
+			password: 'guardian:g_guardian_tenant_runtime:secret',
 		});
-		expect(credentialProvider).toHaveBeenCalledWith('guardian', 'guardian_runtime_role');
+		expect(credentialProvider).toHaveBeenCalledWith('guardian', 'g_guardian_tenant_runtime');
 	});
 
 	it('rejects agency IDs that cannot safely form database and role names', () => {
-		expect(() => resolveTenantRuntimeRoleName('Guardian-West')).toThrow(
-			'Agency ID must start with a lowercase letter',
-		);
+		expect(() => resolveTenantRuntimeRoleName('Guardian-West')).toThrow('Agency ID must start with a lowercase letter');
 	});
 
 	it('fails before connecting when a required setting is absent', async () => {
@@ -74,9 +70,7 @@ describe('database client configuration', () => {
 		vi.stubEnv('CONTROL_DB_USR', 'control_bootstrap');
 		vi.stubEnv('CONTROL_DB_PWD', 'bootstrap-secret');
 
-		await expect(resolveControlDbClientConfig()).rejects.toThrow(
-			'Required environment variable is missing: DB_HOST',
-		);
+		await expect(resolveControlDbClientConfig()).rejects.toThrow('Required environment variable is missing: DB_HOST');
 	});
 
 	it('rejects invalid ports', async () => {
@@ -84,8 +78,6 @@ describe('database client configuration', () => {
 		vi.stubEnv('CONTROL_DB_USR', 'control_bootstrap');
 		vi.stubEnv('CONTROL_DB_PWD', 'bootstrap-secret');
 
-		await expect(resolveControlDbClientConfig()).rejects.toThrow(
-			'DB_PORT must be an integer between 1 and 65535',
-		);
+		await expect(resolveControlDbClientConfig()).rejects.toThrow('DB_PORT must be an integer between 1 and 65535');
 	});
 });

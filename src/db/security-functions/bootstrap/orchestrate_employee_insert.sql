@@ -57,7 +57,7 @@ AS $$
             zip_code
         ) VALUES (
             p_employee_id,
-            p_employee ->> 'jobTitle',
+            p_employee ->> 'jobCode',
             p_employee ->> 'firstName',
             p_employee ->> 'lastName',
             p_employee ->> 'preferredName',
@@ -71,7 +71,9 @@ AS $$
             p_employee ->> 'city',
             p_employee ->> 'stateCode',
             p_employee ->> 'zipCode'
-        );
+        )
+        ON CONFLICT (employee_id)
+            DO NOTHING;
 
         INSERT INTO public.employment_periods (employee_id, start_date)
         VALUES (p_employee_id, p_start_date);

@@ -5,7 +5,11 @@ import { createPostgresBackend, Worker } from 'bullmq';
 
 export class BullWorkerManager implements BullMQWorkerManager {
 	private readonly workersCache = new Map<string, PgWorker>();
-	public getWorker<T>(agencyId: string, queueName: string, processor: BullProcessor): PgWorker {
+	public getWorker<T>(
+		agencyId: string,
+		queueName: string,
+		processor: BullProcessor<T>,
+	): PgWorker {
 		const key = JSON.stringify([agencyId, queueName]);
 		const existing = this.workersCache.get(key);
 		if (existing) {

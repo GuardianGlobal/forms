@@ -1,15 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
 import type { PoolClient } from 'pg';
-import {
-	clientPoolManager,
-	bullWorkerManager,
-	bullQueueManager,
-	bullFlowManager,
-} from '#src/app/dependencies.js';
+import { clientPoolManager, bullWorkerManager, bullQueueManager, bullFlowManager } from '#src/app/dependencies.js';
 import { errorHandler } from '#src/http/error-handler.middleware.js';
 import { postEmployeeInfo } from './post-employee-info.route.js';
 import { createOnboardingOrchestrator } from './post-employee-info.composition.js';
+import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 
 vi.mock('#src/app/dependencies.js', () => ({
 	clientPoolManager: { withClient: vi.fn() },
@@ -21,12 +17,13 @@ vi.mock('./post-employee-info.composition.js', () => ({
 	createOnboardingOrchestrator: vi.fn(),
 }));
 
-const submission = {
+const submission: EmployeeInfoSubmission = {
 	operationId: 'b3b9d7a4-c20e-4f7d-8bd5-269e31a0e740',
 	agencyId: 'guardian',
-	agencyName: 'Guardian Home Care',
-	employmentType: 'W_2',
-	jobTitle: 'PCA',
+	noInPerson: false,
+	agencyName: 'Guardian Homecare',
+	employmentType: 'W-2',
+	jobCode: '31-1122.00',
 	firstName: 'Test',
 	lastName: 'Employee',
 	preferredName: null,
@@ -78,9 +75,11 @@ describe('POST /employee-info', () => {
 	it('orchestrates a valid submission using the checked-out client before returning 201', async () => {
 		const { response, spies } = responseFixture();
 		const client = {} as PoolClient;
-		const handleSubmission = vi.fn<ReturnType<typeof createOnboardingOrchestrator>['handleSubmission']>(async (_submission) => {
-			expect(spies.end).not.toHaveBeenCalled();
-		});
+		const handleSubmission = vi.fn<ReturnType<typeof createOnboardingOrchestrator>['handleSubmission']>(
+			async (_submission) => {
+				expect(spies.end).not.toHaveBeenCalled();
+			},
+		);
 		vi.mocked(createOnboardingOrchestrator).mockReturnValue({
 			handleSubmission,
 		} as unknown as ReturnType<typeof createOnboardingOrchestrator>);
@@ -90,10 +89,10 @@ describe('POST /employee-info', () => {
 
 		expect(clientPoolManager.withClient).toHaveBeenCalledWith('guardian', expect.any(Function));
 		expect(createOnboardingOrchestrator).toHaveBeenCalledWith(client, [
-		bullWorkerManager,
-		bullQueueManager,
-		bullFlowManager,
-	]);
+			bullWorkerManager,
+			bullQueueManager,
+			bullFlowManager,
+		]);
 		expect(handleSubmission).toHaveBeenCalledWith(submission, client);
 		expect(spies.writeHead).toHaveBeenCalledWith(201);
 		expect(spies.end).toHaveBeenCalledWith('Accepted');

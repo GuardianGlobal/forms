@@ -9,10 +9,7 @@ const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
 const fixture = readJson('submissions/guardian-requirements.json');
 const legacy = readJson('test/fixtures/guardian-config.legacy.json');
 const mapping: Record<string, string> = readJson('test/fixtures/guardian-job-code-mapping.json');
-const seed = readFileSync(
-	resolve(dbRoot, 'sql/tenant/bootstrap/2_tables/024_create_requirement_configs.sql'),
-	'utf8',
-);
+const seed = readFileSync(resolve(dbRoot, 'sql/tenant/bootstrap/4_seeds/024_create_requirement_configs.sql'), 'utf8');
 const catalog = readJson(resolve(dbRoot, 'O*NET/occupations.json')).occupations as Array<{
 	jobCode: string;
 	occupation: string;
@@ -29,29 +26,24 @@ describe('Guardian configuration migration', () => {
 		expect(embedded).toEqual(fixture);
 		expect(tenantConfigSchema.parse(embedded)).toEqual(fixture);
 	});
-	it.each(Object.keys(mapping))(
-		'preserves all requirement flags and assignments for %s',
-		(job) => {
-			const expected = [
-				...legacy.baseRequirements,
-				...legacy.uniqueRequirements.find(
-					(entry: { jobTitle: string }) => entry.jobTitle === job,
-				).requirements,
-			]
-				.map(({ needsInPerson, ...entry }: { needsInPerson: boolean; name: string }) => ({
-					...entry,
-					name: entry.name.toUpperCase(),
-					inPersonOnly: needsInPerson,
-				}))
-				.sort((a, b) => a.name.localeCompare(b.name));
-			const actual = tenantConfigSchema
-				.parse(fixture)
-				.requirements.filter((req) => req.jobCodes.includes(mapping[job]))
-				.map(({ requirementId, jobCodes, ...entry }) => entry)
-				.sort((a, b) => a.name.localeCompare(b.name));
-			expect(actual).toEqual(expected);
-		},
-	);
+	it.each(Object.keys(mapping))('preserves all requirement flags and assignments for %s', (job) => {
+		const expected = [
+			...legacy.baseRequirements,
+			...legacy.uniqueRequirements.find((entry: { jobTitle: string }) => entry.jobTitle === job).requirements,
+		]
+			.map(({ needsInPerson, ...entry }: { needsInPerson: boolean; name: string }) => ({
+				...entry,
+				name: entry.name.toUpperCase(),
+				inPersonOnly: needsInPerson,
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name));
+		const actual = tenantConfigSchema
+			.parse(fixture)
+			.requirements.filter((req) => req.jobCodes.includes(mapping[job]))
+			.map(({ requirementId, jobCodes, ...entry }) => entry)
+			.sort((a, b) => a.name.localeCompare(b.name));
+		expect(actual).toEqual(expected);
+	});
 	it('resolves every assignment to a catalog occupation', () => {
 		const codes = new Set(catalog.map((row) => row.jobCode));
 		for (const req of tenantConfigSchema.parse(fixture).requirements) {
@@ -68,12 +60,8 @@ describe('Guardian configuration migration', () => {
 			occupation: 'Personal Care Aides',
 			displayName: 'Personal Care Aide',
 		});
-		expect(catalog.find((row) => row.jobCode === '29-1141.00')?.displayName).toBe(
-			'Registered Nurse',
-		);
-		expect(catalog.find((row) => row.jobCode === '11-9111.00')?.displayName).toBe(
-			'Medical and Health Services Manager',
-		);
+		expect(catalog.find((row) => row.jobCode === '29-1141.00')?.displayName).toBe('Registered Nurse');
+		expect(catalog.find((row) => row.jobCode === '11-9111.00')?.displayName).toBe('Medical and Health Services Manager');
 	});
 	it('regenerates the complete catalog and SQL identically from the supplied CSV', () => {
 		expect(() =>

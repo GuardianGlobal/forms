@@ -1,11 +1,13 @@
-import { CreateEmailOptions, CreateEmailResponse, Resend } from 'resend';
+import { type CreateEmailOptions, type CreateEmailResponse, Resend } from 'resend';
 import type { ComposerPayload } from '#src/bullmq/processors/finish-onboarding/02_compose-email.js';
 import { z } from 'zod';
 import { EmailMessageRepository } from '#src/db/email-message-repo/email-message-repository.module.js';
 import { getTenantOnboardingDomain } from '#src/util/get-tenant-onboarding-domain.js';
+import type { PoolClient } from 'pg';
 
 interface EmailJob {
 	data: ComposerPayload;
+	client: PoolClient;
 }
 
 export interface ResendResponse {

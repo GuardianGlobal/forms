@@ -1,6 +1,10 @@
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
-import type { ZeroNineArray } from '#src/app/modules/id/id-generator-service.schema.js';
+import type {
+	EmployeeIdInfo,
+	EmployeeIdRepository,
+	ZeroNineArray,
+} from '#src/app/modules/id/id-generator-service.schema.js';
 import {
 	zeroNineNumberSchema,
 	zeroNineArraySchema,
@@ -10,12 +14,10 @@ import {
 import { Errors } from '#src/http/errors.js';
 import type { SensitiveInfo } from '#src/app/modules/id/id-generator-service.schema.js';
 
-type EmployeeIdRepository = Pick<EmployeeInfoRepository, 'getEmployeeIds' | 'idExists'>;
-
 export class IdGeneratorService {
 	constructor(private readonly employeeInfoRepo: EmployeeIdRepository) {}
 
-	public createEmployeeId = async (employee: EmployeeInfoSubmission) => {
+	public createEmployeeId = async (employee: EmployeeIdInfo) => {
 		let baseId: string = '';
 		let collisionSequence: string = '000';
 		let collisionCounter: number = 0;
@@ -47,11 +49,7 @@ export class IdGeneratorService {
 			if (id === newId) {
 				const result: SensitiveInfo | null = await this.employeeInfoRepo.idExists(newId);
 				if (result) {
-					if (
-						result.id === id &&
-						result.ssn === employee.socialSecurityNumber &&
-						result.id === newId
-					) {
+					if (result.id === id && result.ssn === employee.socialSecurityNumber && result.id === newId) {
 						// duplicate record, throw error.
 						throw Errors.conflict('Forbiden! Record already exists under that id');
 					}
@@ -96,17 +94,13 @@ export class IdGeneratorService {
 	public getInitialsCode(firstName: string, lastName: string) {
 		const first = stringCharacterSchema.parse(firstName);
 		const last = stringCharacterSchema.parse(lastName);
-		const firstNameCode = first.charCodeAt(0);
-		const lastNameCode = last.charCodeAt(0);
+		const firstNameCode = first.toUpperCase().charCodeAt(0);
+		const lastNameCode = last.toUpperCase().charCodeAt(0);
 		const roll = this.numRoll(firstNameCode);
 		return this.cycleNumRoll(roll, lastNameCode);
 	}
 	public getDobCodes(dob: string) {
 		const dateStrings = dateCodeSchema.parse(dob);
-		return [
-			this.numRoll(dateStrings.year),
-			this.numRoll(dateStrings.month),
-			this.numRoll(dateStrings.day),
-		];
+		return [this.numRoll(dateStrings.year), this.numRoll(dateStrings.month), this.numRoll(dateStrings.day)];
 	}
 }

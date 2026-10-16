@@ -35,7 +35,8 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Zara',
 		lastName: 'Quartz',
 		preferredName: null,
-		jobTitle: '31-1122.00',
+		noInPerson: false,
+		jobCode: '31-1122.00',
 		employmentStatus: 'active',
 		employmentType: 'W_2',
 		gender: 'F',
@@ -55,7 +56,8 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Yves',
 		lastName: 'Nimbus',
 		preferredName: 'Yve',
-		jobTitle: '31-1122.00',
+		noInPerson: false,
+		jobCode: '31-1122.00',
 		employmentStatus: 'starting',
 		employmentType: 'W_2',
 		gender: 'M',
@@ -75,7 +77,8 @@ const submissions: EmployeeInfoSubmission[] = [
 		firstName: 'Xena',
 		lastName: 'Maple',
 		preferredName: null,
-		jobTitle: '31-1122.00',
+		noInPerson: false,
+		jobCode: '31-1122.00',
 		employmentStatus: 'inactive',
 		employmentType: 'W_2',
 		gender: null,
@@ -121,19 +124,16 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		const employeeId = '12345678901';
 		const encrypted = encryptSsn(employee.socialSecurityNumber);
 
-		await publicPool.query(
-			'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)',
-			[
-				employeeId,
-				employee,
-				'2026-01-01',
-				employee.dateOfBirth,
-				encrypted.ciphertext,
-				encrypted.nonce,
-				encrypted.keyVersion,
-				employee.socialSecurityNumber.slice(-4),
-			],
-		);
+		await publicPool.query('SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)', [
+			employeeId,
+			employee,
+			'2026-01-01',
+			employee.dateOfBirth,
+			encrypted.ciphertext,
+			encrypted.nonce,
+			encrypted.keyVersion,
+			employee.socialSecurityNumber.slice(-4),
+		]);
 
 		const {
 			rows: [stored],
@@ -153,7 +153,7 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			first_name: employee.firstName,
 			last_name: employee.lastName,
 			email: employee.email,
-			job_code: employee.jobTitle,
+			job_code: employee.jobCode,
 			start_date: '2026-01-01',
 			date_of_birth: employee.dateOfBirth,
 			ssn_ciphertext: encrypted.ciphertext,
@@ -170,38 +170,27 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 		});
 		const encrypted = encryptSsn(employee.socialSecurityNumber);
 		for (const employeeId of ['98765432002', '98765432001']) {
-			await publicPool.query(
-				'SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)',
-				[
-					employeeId,
-					employee,
-					'2026-01-01',
-					employee.dateOfBirth,
-					encrypted.ciphertext,
-					encrypted.nonce,
-					encrypted.keyVersion,
-					employee.socialSecurityNumber.slice(-4),
-				],
-			);
+			await publicPool.query('SELECT api.orchestrate_employee_insert($1, $2, $3, $4, $5, $6, $7, $8)', [
+				employeeId,
+				employee,
+				'2026-01-01',
+				employee.dateOfBirth,
+				encrypted.ciphertext,
+				encrypted.nonce,
+				encrypted.keyVersion,
+				employee.socialSecurityNumber.slice(-4),
+			]);
 		}
 
 		const client = await publicPool.connect();
 		try {
 			await client.query('SET ROLE g_forms_integration_runtime');
-			const matching = await client.query<{ ids: string[] }>(
-				'SELECT api.get_employee_ids($1) AS ids',
-				['98765432'],
-			);
-			const empty = await client.query<{ ids: string[] }>(
-				'SELECT api.get_employee_ids($1) AS ids',
-				['00000000'],
-			);
+			const matching = await client.query<{ ids: string[] }>('SELECT api.get_employee_ids($1) AS ids', ['98765432']);
+			const empty = await client.query<{ ids: string[] }>('SELECT api.get_employee_ids($1) AS ids', ['00000000']);
 
 			expect(matching.rows[0].ids).toEqual(['98765432001', '98765432002']);
 			expect(empty.rows[0].ids).toEqual([]);
-			await expect(client.query('SELECT employee_id FROM public.employees')).rejects.toThrow(
-				'permission denied',
-			);
+			await expect(client.query('SELECT employee_id FROM public.employees')).rejects.toThrow('permission denied');
 		} finally {
 			await client.query('RESET ROLE');
 			client.release();
@@ -221,14 +210,10 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 				{ getFlowProducer: vi.fn(), endAll: vi.fn() },
 			];
 			const idGenerator = new IdGeneratorService(repository);
-			const orchestrator = new OnboardingSubmissionOrchestrator(
-				bullMqs,
-				idGenerator,
-				repository,
-			);
+			const orchestrator = new OnboardingSubmissionOrchestrator(bullMqs, idGenerator, repository);
 
 			for (const submission of submissions) {
-				await orchestrator.handleSubmission(submission);
+				await orchestrator.handleSubmission(submission, pgClient);
 			}
 			expect(getQueue).toHaveBeenCalledTimes(submissions.length);
 			expect(add).toHaveBeenCalledTimes(submissions.length);
@@ -278,9 +263,7 @@ describe.skipIf(!integrationTestsEnabled)('employee submission database integrat
 			);
 			expect(sensitiveResult.rows).toHaveLength(3);
 
-			const sensitiveRowsById = new Map(
-				sensitiveResult.rows.map((row) => [row.employee_id, row]),
-			);
+			const sensitiveRowsById = new Map(sensitiveResult.rows.map((row) => [row.employee_id, row]));
 			for (const submission of submissions) {
 				const publicRow = publicRowsByEmail.get(submission.email);
 				expect(publicRow).toBeDefined();

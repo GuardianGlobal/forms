@@ -4,6 +4,7 @@ import { postEmployeeInfo } from '#src/app/routes/employee-info/post-employee-in
 import { postEmployeeDocuments } from '#src/app/routes/employee-documents/employee-documents.route.js';
 import { postTenantConfig } from '#src/app/routes/tenant-requirements-config/tenant-requirements-configuration.route.js';
 import { getMain } from '#src/app/routes/main/main.route.js';
+import { generateEmployeeId } from './routes/generate-employee-id/generateEmployeeId.js';
 export const app = express();
 
 app.use(express.json());
@@ -13,10 +14,17 @@ app.get('/', getMain);
 
 /*-------------------------------------------------------------------------------------------------------------/
 |																											   |
+|										       New Employee ID									               |
+|																											   |
+/-------------------------------------------------------------------------------------------------------------*/
+app.post('/onboarding/generate-employee-id', generateEmployeeId);
+
+/*-------------------------------------------------------------------------------------------------------------/
+|																											   |
 |										Employee Submissions Handlers									       |
 |																											   |
 /-------------------------------------------------------------------------------------------------------------*/
-app.post('/onboarding-start')
+// TODO: Register /onboarding-start once its handler is implemented.
 app.post('/onboarding', postEmployeeInfo);
 app.post('/forms/:id', postEmployeeDocuments);
 
@@ -25,7 +33,6 @@ app.post('/forms/:id', postEmployeeDocuments);
 |										    Tenant Config Handlers									           |
 |																											   |
 /-------------------------------------------------------------------------------------------------------------*/
-
 app.post('/tenant/requirements-config', postTenantConfig);
 
 // Must be registered after the routes

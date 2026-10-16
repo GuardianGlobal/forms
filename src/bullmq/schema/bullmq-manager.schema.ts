@@ -32,14 +32,14 @@ export interface PgFlowProducer extends FlowProducer<
 	PostgresConnectionOptions
 > {}
 
-export type BullProcessor = (args?: any) => Promise<any>;
+export type BullProcessor<T> = (args?: any) => Promise<T>;
 
 export interface BaseBullMqManger {
 	endAll: () => Promise<void>;
 }
 
 export interface BullMQWorkerManager extends BaseBullMqManger {
-	getWorker: (agencyId: string, queueName: string, processor: BullProcessor) => PgWorker;
+	getWorker<T>(agencyId: string, queueName: string, processor: BullProcessor<T>): PgWorker;
 }
 
 export interface BullMQQueueManager extends BaseBullMqManger {

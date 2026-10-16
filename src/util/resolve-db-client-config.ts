@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import z from 'zod';
 
 export type AgencyDatabaseConfig = Awaited<ReturnType<typeof resolveTenantRuntimeDbClientConfig>>;
 
@@ -6,10 +7,7 @@ export type TenantRuntimeCredentials = {
 	password: string;
 };
 
-export type TenantRuntimeCredentialProvider = (
-	agencyId: string,
-	roleName: string,
-) => Promise<TenantRuntimeCredentials>;
+export type TenantRuntimeCredentialProvider = (agencyId: string, roleName: string) => Promise<TenantRuntimeCredentials>;
 
 function requireEnvironmentVariable(name: string): string {
 	const value = process.env[name];
@@ -52,17 +50,15 @@ async function resolveSsl() {
 	};
 }
 
-async function resolveBaseConfig(database: string, applicationName: string) {
+async function resolveBaseConfig(database: string, type: 'tenant' | 'control') {
 	if (database.trim().length === 0) {
 		throw new Error('Database name must not be blank');
 	}
-
 	return {
 		host: requireEnvironmentVariable('DB_HOST'),
 		port: resolvePort(),
-		database,
+		database: type === 'control' ? database : `${database}_tenant`,
 		ssl: await resolveSsl(),
-		application_name: applicationName,
 	};
 }
 
@@ -73,13 +69,10 @@ export function resolveTenantRuntimeRoleName(agencyId: string): string {
 		);
 	}
 
-	return `${agencyId}_runtime_role`;
+	return `g_${agencyId}_tenant_runtime`;
 }
 
-export async function resolveTenantRuntimeDbClientConfig(
-	agencyId: string,
-	credentials: TenantRuntimeCredentials,
-) {
+export async function resolveTenantRuntimeDbClientConfig(agencyId: string, credentials: TenantRuntimeCredentials) {
 	const roleName = resolveTenantRuntimeRoleName(agencyId);
 
 	if (credentials.password.length === 0) {
@@ -87,7 +80,7 @@ export async function resolveTenantRuntimeDbClientConfig(
 	}
 
 	return {
-		...(await resolveBaseConfig(agencyId, `guardian-tenant-${agencyId}`)),
+		...(await resolveBaseConfig(agencyId, 'tenant')),
 		user: roleName,
 		password: credentials.password,
 	};
@@ -106,10 +99,7 @@ export function createTenantRuntimeDbClientConfigResolver(
 
 export async function resolveControlDbClientConfig(): Promise<AgencyDatabaseConfig> {
 	return {
-		...(await resolveBaseConfig(
-			process.env.CONTROL_DB_NAME ?? 'control',
-			'guardian-control-bootstrap',
-		)),
+		...(await resolveBaseConfig(z.string().trim().min(1).parse(process.env.CONTROL_DB_NAME), 'control')),
 		user: requireEnvironmentVariable('CONTROL_DB_USR'),
 		password: requireEnvironmentVariable('CONTROL_DB_PWD'),
 	};

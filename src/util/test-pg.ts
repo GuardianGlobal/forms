@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import z from 'zod';
 
 export class TestPg {
+	pool = new Map<string, Pool>();
 	constructor(private readonly mode: 'control' | 'tenant') {
 		switch (this.mode) {
 			case 'control':
@@ -29,18 +30,24 @@ export class TestPg {
 		try {
 			return await operation(client);
 		} finally {
-			client.end();
+			client.release();
 		}
 	}
 
-	private getPool(): Pool {
-		const wait = Date.now() + 1_000;
-		while (wait > Date.now()) {}
-		return new Pool({
+	getPool(): Pool {
+		const existing = this.pool.get(this.mode);
+		if (existing) return existing;
+		const pool = new Pool({
 			connectionString: `postgresql://${encodeURIComponent(this.usr)}:${encodeURIComponent(this.pwd)}@localhost:5432/test_${this.mode}`,
 		});
+		this.pool.set(this.mode, pool);
+		return pool;
 	}
 	async drop(): Promise<void> {
+		const pools = [...this.pool.values()];
+		this.pool.clear();
+		await Promise.all(pools.map((pool) => pool.end()));
+
 		const script = fileURLToPath(
 			new URL(`../../scripts/pg/drop_${this.mode}_db.sh`, import.meta.url),
 		);

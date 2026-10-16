@@ -1,6 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { EncryptionError } from '#src/http/encryption-error.js';
 import { EncryptionErrors } from '#src/http/errors.js';
+import z from 'zod';
 
 const ALGORITHM = 'aes-256-gcm';
 export const SSN_NONCE_LENGTH = 12;
@@ -19,11 +20,13 @@ export type EncryptedSsn = Readonly<{
 }>;
 
 function loadEncryptionConfig(): SsnEncryptionConfig {
-	const encodedKey = process.env.SSN_ENCRYPTION_KEY_BASE64?.trim();
-	const keyVersion = process.env.SSN_ENCRYPTION_KEY_VERSION?.trim();
+	const encodedKey = z.string().parse(process.env.SSN_ENCRYPTION_KEY_BASE64);
+	const keyVersion = z.string().parse(process.env.SSN_ENCRYPTION_KEY_VERSION);
 
 	if (!encodedKey) {
-		throw EncryptionErrors.missingConfiguration(new Error('SSN encryption key is not configured.'));
+		throw EncryptionErrors.missingConfiguration(
+			new Error('SSN encryption key is not configured.'),
+		);
 	}
 	if (!keyVersion || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(keyVersion)) {
 		throw EncryptionErrors.invalidConfiguration(
@@ -42,12 +45,19 @@ function loadEncryptionConfig(): SsnEncryptionConfig {
 	return { key, keyVersion };
 }
 
-export function encryptSsn(ssn: string, config: SsnEncryptionConfig = loadEncryptionConfig()): EncryptedSsn {
+export function encryptSsn(
+	ssn: string,
+	config: SsnEncryptionConfig = loadEncryptionConfig(),
+): EncryptedSsn {
 	if (!/^\d{3}-\d{2}-\d{4}$/.test(ssn)) {
-		throw EncryptionErrors.invalidPlaintext(new TypeError('SSN must use the format XXX-XX-XXXX.'));
+		throw EncryptionErrors.invalidPlaintext(
+			new TypeError('SSN must use the format XXX-XX-XXXX.'),
+		);
 	}
 	if (!config.keyVersion || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(config.keyVersion)) {
-		throw EncryptionErrors.invalidConfiguration(new Error('SSN encryption key version is invalid.'));
+		throw EncryptionErrors.invalidConfiguration(
+			new Error('SSN encryption key version is invalid.'),
+		);
 	}
 
 	const key = Buffer.from(config.key);
@@ -85,8 +95,13 @@ export function decryptSsn(
 	encryptedSsn: EncryptedSsn,
 	config: SsnEncryptionConfig = loadEncryptionConfig(),
 ): string {
-	if (!Buffer.isBuffer(encryptedSsn.ciphertext) || encryptedSsn.ciphertext.length <= SSN_AUTH_TAG_LENGTH) {
-		throw EncryptionErrors.invalidPayload(new TypeError('Encrypted SSN ciphertext is invalid.'));
+	if (
+		!Buffer.isBuffer(encryptedSsn.ciphertext) ||
+		encryptedSsn.ciphertext.length <= SSN_AUTH_TAG_LENGTH
+	) {
+		throw EncryptionErrors.invalidPayload(
+			new TypeError('Encrypted SSN ciphertext is invalid.'),
+		);
 	}
 	if (!Buffer.isBuffer(encryptedSsn.nonce) || encryptedSsn.nonce.length !== SSN_NONCE_LENGTH) {
 		throw EncryptionErrors.invalidPayload(
@@ -123,7 +138,9 @@ export function decryptSsn(
 		try {
 			const ssn = plaintext.toString('utf8');
 			if (!/^\d{3}-\d{2}-\d{4}$/.test(ssn)) {
-				throw EncryptionErrors.invalidPayload(new Error('Decrypted SSN has an invalid format.'));
+				throw EncryptionErrors.invalidPayload(
+					new Error('Decrypted SSN has an invalid format.'),
+				);
 			}
 			return ssn;
 		} finally {
