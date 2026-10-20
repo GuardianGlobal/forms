@@ -68,11 +68,7 @@ function escapeHtml(value: string): string {
 	);
 }
 
-function renderTemplate(
-	template: string,
-	values: Readonly<Record<string, string>>,
-	escapeValues = false,
-): string {
+function renderTemplate(template: string, values: Readonly<Record<string, string>>, escapeValues = false): string {
 	return template.replace(/\{\{([a-z_]+)\}\}/g, (placeholder, key: string) => {
 		const value = values[key];
 		if (value === undefined) {
@@ -100,13 +96,9 @@ export class EmailMessageRepository {
 		throw new Error('Method not implemented!');
 	};
 
-	getEmailMessage = async (
-		tenantDomain: string,
-		employeeId: string,
-		emailId: string,
-	): Promise<CreateEmailOptions> => {
+	getEmailMessage = async (tenantDomain: string, employeeId: string, emailId: string): Promise<CreateEmailOptions> => {
 		const result = await this.client.query<{ message: CreateEmailOptions }>(
-			`SELECT api.get_email_message($1, $2, $3)`,
+			`SELECT api.get_email_message($1, $2, $3) AS "message"`,
 			[tenantDomain, employeeId, emailId],
 		);
 		return result.rows[0].message;
@@ -117,61 +109,11 @@ export class EmailMessageRepository {
 		emailMessage: EmailMessage,
 		messageTemplate: EmailMessageTemplate,
 	): Promise<string> => {
-		const result = await this.client.query(
-			`SELECT * FROM api.register_email_message($1,$2,$3)`,
-			[employeeId, emailMessage, messageTemplate],
-		);
+		const result = await this.client.query(`SELECT * FROM api.register_email_message($1,$2,$3)`, [
+			employeeId,
+			emailMessage,
+			messageTemplate,
+		]);
 		return result.rows[0].emailId;
-	};
-
-	getContext = async (employeeId: string) => {
-		const agency = this.agency;
-		const result = await this.client.query<EmailContextRow>(
-			'SELECT * FROM api.get_context($1);',
-			[employeeId],
-		);
-
-		if (result.rows.length === 0) {
-			return null;
-		}
-
-		const firstRow = result.rows[0];
-
-		return {
-			employee: {
-				employeeId: firstRow.employeeId,
-				firstName: firstRow.firstName,
-				email: firstRow.email,
-			},
-
-			agency,
-
-			issues: result.rows.map((row): RequirementIssue => {
-				const expiresOn = toDate(row.expiresOn);
-				const templateValues = {
-					requirement_display_name: row.requirementDisplayName,
-					expires_on: formatDate(expiresOn),
-				};
-
-				return {
-					issueId: row.issueId,
-					issueCode: row.issueCode,
-					requirementTypeId: row.requirementTypeId,
-					requirementDisplayName: row.requirementDisplayName,
-					textTemplate: renderTemplate(row.textTemplate, templateValues),
-					htmlTemplate:
-						row.htmlTemplate === null
-							? null
-							: renderTemplate(row.htmlTemplate, templateValues, true),
-					expiresOn,
-					actionDueAt: toDate(row.actionDueAt),
-					requiresInPerson: row.requiresInPerson,
-					containsSensitiveInformation: row.containsSensitiveInformation,
-				};
-			}),
-
-			deadline: toDate(firstRow.deadline),
-			formCompletionUrl: `https://portal.myguardiancares.com/form/${firstRow.formToken}?employee=${firstRow.employeeId}`,
-		};
 	};
 }

@@ -54,7 +54,7 @@ BEGIN
     VALUES (
         p_employee_id,
         p_message_template_code,
-        v_idempotency_key,
+        v_idempotency_key::uuid,
         p_email_message ->> 'to',
         p_email_message ->> 'subject',
         p_email_message ->> 'text',
@@ -67,7 +67,7 @@ BEGIN
         SELECT oe.outbound_email_id
         INTO STRICT v_email_id
         FROM public.outbound_emails AS oe
-        WHERE oe.idempotency_key = v_idempotency_key;
+        WHERE oe.idempotency_key = v_idempotency_key::uuid;
     END IF;
 
     RETURN QUERY SELECT v_email_id;
@@ -91,7 +91,7 @@ BEGIN
     IF NULLIF (btrim(p_employee_id), '') IS NULL THEN
         RAISE EXCEPTION 'Employee ID is required';
     END IF;
-    IF NULLIF (btrim(p_email_id), '') IS NULL THEN
+    IF NULLIF (btrim(p_email_id::text), '') IS NULL THEN
         RAISE EXCEPTION 'Email ID is required';
     END IF;
     SELECT jsonb_strip_nulls(jsonb_build_object(

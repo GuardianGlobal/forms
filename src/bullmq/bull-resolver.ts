@@ -1,10 +1,4 @@
-import type {
-	BullMqs,
-	BullProcessor,
-	PgFlowProducer,
-	PgQueue,
-	PgWorker,
-} from './schema/bullmq-manager.schema.js';
+import type { BullMqs, BullProcessor, PgFlowProducer, PgQueue, PgWorker } from './schema/bullmq-manager.schema.js';
 import z from 'zod';
 
 // Validate capabilities without cloning managers or losing their prototype/state.
@@ -34,7 +28,7 @@ const sharedArgs = {
 const depNameSchema = z.string().refine((value) => value.trim().length > 0, {
 	error: 'depName must not be empty or whitespace',
 });
-const processorSchema = z.custom<BullProcessor>((value) => typeof value === 'function', {
+const processorSchema = z.custom<BullProcessor<z.ZodType>>((value) => typeof value === 'function', {
 	error: 'WORKER requires a callable processor',
 });
 const bullResolverArgsSchema = z.discriminatedUnion('depType', [
@@ -59,31 +53,21 @@ const bullResolverArgsSchema = z.discriminatedUnion('depType', [
 	}),
 ]);
 
-export function bullResolver(
-	deps: BullMqs,
-	agencyId: string,
-	depType: 'QUEUE',
-	depName: string,
-): PgQueue;
-export function bullResolver(
+export function bullResolver(deps: BullMqs, agencyId: string, depType: 'QUEUE', depName: string): PgQueue;
+export function bullResolver<T>(
 	deps: BullMqs,
 	agencyId: string,
 	depType: 'WORKER',
 	depName: string,
-	processor: BullProcessor,
+	processor: BullProcessor<T>,
 ): PgWorker;
-export function bullResolver(
-	deps: BullMqs,
-	agencyId: string,
-	depType: 'FLOW',
-	depName?: string,
-): PgFlowProducer;
-export function bullResolver(
+export function bullResolver(deps: BullMqs, agencyId: string, depType: 'FLOW', depName?: string): PgFlowProducer;
+export function bullResolver<T>(
 	deps: BullMqs,
 	agencyId: string,
 	depType: 'WORKER' | 'QUEUE' | 'FLOW',
 	depName?: string,
-	processor?: BullProcessor,
+	processor?: BullProcessor<T>,
 ): PgQueue | PgWorker | PgFlowProducer {
 	// Keep structured Zod issues (including field paths) available to callers.
 	const args = bullResolverArgsSchema.parse({ deps, agencyId, depType, depName, processor });

@@ -3,6 +3,7 @@ import { EmployeeInfoRepository } from './employee-info-repository.module.js';
 import { TestPg } from '#src/util/test-pg.js';
 import { decryptSsn, encryptSsn } from '#src/util/encrypt-ssn.js';
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmailContext } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 
 type RequirementComponents =
 	| {
@@ -214,11 +215,11 @@ function toEmployeeInfo(mockEmployees: MockEmployee[]): EmployeeInfoSubmission[]
 }
 
 describe('EmployeeInfoRepository', () => {
-	let mockdb: TestPg;
+	let testdb: TestPg;
 	let repo: EmployeeInfoRepository;
 	beforeAll(async () => {
-		mockdb = new TestPg('tenant');
-		await mockdb.withClient(async (client) => {
+		testdb = new TestPg('tenant');
+		await testdb.withClient(async (client) => {
 			repo = new EmployeeInfoRepository(client);
 			await client.query(
 				`INSERT INTO public.employees (
@@ -306,7 +307,7 @@ describe('EmployeeInfoRepository', () => {
 	describe('insertEmployeeRecord', () => {
 		it('should successfuly insert records for each mock employee', async () => {
 			// wipe database clean
-			await mockdb.withClient(async (client) => {
+			await testdb.withClient(async (client) => {
 				await client.query(`TRUNCATE TABLE public.employees, sensitive.employee_sensitive_data CASCADE;`);
 				const checkEmployees = await client.query(`SELECT * FROM public.employees`);
 				const checkSensitive = await client.query(`SELECT * FROM sensitive.employee_sensitive_data`);
@@ -320,7 +321,7 @@ describe('EmployeeInfoRepository', () => {
 				await repo.insertEmployeeRecord(mockEmployees[i].employee_id, employee);
 			}
 			// query db to see if employee data was added successfuly
-			await mockdb.withClient(async (client) => {
+			await testdb.withClient(async (client) => {
 				const queryResult = await client.query(
 					`
 						SELECT 
@@ -389,11 +390,13 @@ describe('EmployeeInfoRepository', () => {
 	});
 	describe('initializeEmployeeRequirements', () => {
 		it('should successfuly insert requirements for each mock employee and generate a composition context', async () => {
-			await mockdb.withClient(async (client) => {
+			await testdb.withClient(async (client) => {
 				const result = await client.query(`
 						SELECT employee_id FROM public.employees
 					`);
 				console.log('Populated Employees: ', result.rows);
+				expect(result.rowCount).toBeGreaterThan(0);
+				// if 0 than check seed data pipeline
 			});
 			const expectedRequirements: ExpectedRequirements = {
 				configVID: 'b75d881f-b973-44a4-8b77-2e4cac615bc8',
@@ -519,7 +522,7 @@ describe('EmployeeInfoRepository', () => {
 					},
 				],
 			};
-			const componentList = await mockdb.withClient(async (client) => {
+			const componentList = await testdb.withClient(async (client) => {
 				const result = await client.query<{
 					componentId: string;
 					displayName: string;
@@ -543,13 +546,13 @@ describe('EmployeeInfoRepository', () => {
 					continue;
 				}
 				const component = componentList.find((component) => component.displayName == req.name);
-
+				expect(component).not.toBeUndefined();
 				if (!component) {
 					throw new Error(`missing component for requirement: ${req.name}`);
 				}
 				req.componentId = component.componentId;
 			}
-
+			const contextObject: EmailContext[] = [];
 			for (const employee of mockEmployees) {
 				const context = await repo.initializeEmployeeRequirements({
 					agencyId: 'guardian',
@@ -557,11 +560,42 @@ describe('EmployeeInfoRepository', () => {
 					employeeId: employee.employee_id,
 				});
 
-				console.log(context);
+				contextObject.push(context);
 			}
+			console.log(contextObject[0]);
+			expect(contextObject.length).toStrictEqual(mockEmployees.length);
+
+			await testdb.withClient(async (client) => {
+				for (let context of contextObject) {
+					const result = await client.query(
+						`
+							SELECT er.employee_id, iss ->> 'requirementDisplayName' AS "name"
+							FROM public.requirement_types rt
+							JOIN unnest($1::jsonb[]) AS issues(iss)
+								ON rt.config_version_id = $3::uuid
+								AND rt.requirement_type_id = (iss ->> 'requirementTypeId')::uuid
+								AND rt.display_name = iss ->> 'requirementDisplayName'
+								AND rt.in_person_only = (iss ->> 'requiresInPerson')::boolean
+								AND rt.contains_sensitive_info = (iss ->> 'containsSensitiveInformation')::boolean
+							JOIN public.employee_requirements er
+								ON rt.config_version_id = er.config_version_id
+								AND rt.requirement_type_id = er.requirement_type_id
+								AND $2 = er.employee_id
+							JOIN public.requirement_issues ri
+								ON er.requirement_id = ri.requirement_id
+								AND (iss ->> 'issueId')::uuid = ri.issue_id
+								AND iss ->> 'issueCode' = ri.issue_code
+								AND (iss ->> 'actionDueAt')::date = ri.action_due_on;
+
+						`,
+						[context.issues, context.employee.employeeId, expectedRequirements.configVID],
+					);
+					expect(result.rowCount).toStrictEqual(context.issues.length);
+				}
+			});
 		});
 	});
 	afterAll(async () => {
-		await mockdb?.drop();
+		await testdb?.drop();
 	});
 });

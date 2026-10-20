@@ -19,8 +19,8 @@ export class OnboardingSubmissionOrchestrator {
 		await this.employeeInfoRepo.insertEmployeeRecord(employeeId, employee);
 
 		//build requirements
-		const queue = bullResolver(this.bullMqs, employee.agencyId, 'QUEUE', queueName);
-		await queue.add(queueName, {
+		const flow = bullResolver(this.bullMqs, employee.agencyId, 'FLOW', queueName);
+		await flow.add(queueName, {
 			agencyId,
 			agencyName,
 			employeeId,

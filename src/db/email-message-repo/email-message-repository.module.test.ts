@@ -1,105 +1,132 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { PoolClient } from 'pg';
-import { EmailMessageRepository, type EmailContextRow } from '#src/db/email-message-repo/email-message-repository.module.js';
+/// <reference types="vitest/globals"/>
+/*
+    This test uses a test bootsrap of the live database
+    in order for the test to work, there must be an employee record in public.employees
+    the public.outbound_emails table depends on a valid employee_id being present in public.employees.
+*/
 
-const employeeId = '37951106000';
+import { z, ZodError } from 'zod';
+import { EmailMessageRepository, EmailMessageTemplate } from './email-message-repository.module.js';
+import { TestPg } from '#src/util/test-pg.js';
+import { EmailMessage } from '#src/app/modules/email-composer/email-composer-service.schema.js';
+import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
+import { EmployeeInfoRepository } from '../employee-info-repository.module.js';
+
+const mockEmployee: EmployeeInfoSubmission = {
+	operationId: 'f4b9a2d7-8c31-4e65-a092-6d0b3f17c8eb',
+	agencyId: 'guardian',
+	agencyName: 'Guardian Homecare',
+	firstName: 'Cameron',
+	lastName: 'Davis',
+	dateOfBirth: '1994-01-31',
+	socialSecurityNumber: '123-45-6789',
+	preferredName: null,
+	jobCode: '31-1122.00',
+	employmentStatus: 'prn',
+	employmentType: 'W_2',
+	phoneNumber: '+13016022920',
+	email: 'cameron@krosscare.com',
+	noInPerson: false,
+	gender: 'M',
+	address1: '5800 Fairfield Ave STE 112',
+	address2: null,
+	city: 'Fort Wayne',
+	stateCode: 'IN',
+	zipCode: '46807',
+};
+
 const agency = {
 	agencyId: 'guardian',
-	name: 'Guardian Home Care',
+	name: 'Guardian Homecare',
 };
-const formCompletionUrl =
-	'https://portal.myguardiancares.com/form/one-time-token?employee=37951106000';
-const actionDueOn = '2026-09-05';
-const i9RequirementTypeId = '00000000-0000-4000-8000-000000000002';
-const customFitTestRequirementTypeId = '00000000-0000-4000-8000-000000000012';
 
-const defaultRequirements = [
-	['00000000-0000-4000-8000-000000000001', 'Government ID', false, true],
-	[i9RequirementTypeId, 'Form I-9', true, true],
-	['00000000-0000-4000-8000-000000000003', 'Social Security Card', false, true],
-	['00000000-0000-4000-8000-000000000004', 'TB Test', false, true],
-	['00000000-0000-4000-8000-000000000005', 'CPR and First Aid Certification', false, false],
-	['00000000-0000-4000-8000-000000000006', 'Handbook Acknowledgement', false, false],
-	['00000000-0000-4000-8000-000000000007', 'Onboarding Form', false, true],
-	['00000000-0000-4000-8000-000000000008', 'Employment Application', false, true],
-	['00000000-0000-4000-8000-000000000009', 'Background Check', false, true],
-	['00000000-0000-4000-8000-000000000010', 'Skills Test', false, false],
-	['00000000-0000-4000-8000-000000000011', 'Form W-4', false, true],
-	[customFitTestRequirementTypeId, 'Annual <Fit> Test', false, false],
-] as const;
+const employeeId: string = '35940131000';
+const emailMessage: EmailMessage = {
+	to: mockEmployee.email,
+	subject: 'Onboarding',
+	text: 'Welcome to Guardian Homecare!',
+	html: '<h1>Welcome to Guardian Homecare!<h1/>',
+	idempotencyKey: 'f4b9a2d7-8c31-4e65-a092-6d0b3f17c8ea',
+};
+const messageTemplateCode: EmailMessageTemplate = 'onboarding';
 
-describe('EmailMessageRepository.getContext', () => {
-	it('builds a missing-document context for a new employee with no documents on file', async () => {
-		// These rows represent the MISSING issues opened by the document-resolution case.
-		// No employee_documents rows exist for this employee.
-		const rows: EmailContextRow[] = defaultRequirements.map(
-			(
-				[
-					requirementTypeId,
-					requirementDisplayName,
-					requiresInPerson,
-					containsSensitiveInformation,
-				],
-				index,
-			) => ({
-				employeeId,
-				formToken: 'one-time-token',
-				firstName: 'Avery',
-				email: 'avery@example.com',
-				issueId: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
-				issueCode: 'MISSING' as const,
-				requirementTypeId,
-				requirementDisplayName,
-				textTemplate:
-					requirementTypeId === customFitTestRequirementTypeId
-						? 'Please submit your {{requirement_display_name}}.'
-						: `Your ${requirementDisplayName} is not currently on file.`,
-				htmlTemplate:
-					requirementTypeId === customFitTestRequirementTypeId
-						? null
-						: `<p>Your ${requirementDisplayName} is not currently on file.</p>`,
-				expiresOn: null,
-				actionDueAt: actionDueOn,
-				requiresInPerson,
-				containsSensitiveInformation,
-				deadline: actionDueOn,
-			}),
-		);
-		const query = vi.fn().mockResolvedValue({ rows, rowCount: rows.length });
-		const pool = { query } as unknown as PoolClient;
-		const repository = new EmailMessageRepository(agency, pool);
-
-		const context = await repository.getContext(employeeId);
-
-		expect(query).toHaveBeenCalledOnce();
-		expect(query).toHaveBeenCalledWith(expect.any(String), [employeeId]);
-		expect(context).toMatchObject({
-			employee: {
-				employeeId,
-				firstName: 'Avery',
-				email: 'avery@example.com',
-			},
-			agency,
-			deadline: new Date('2026-09-05T00:00:00.000Z'),
-			formCompletionUrl,
+describe('EmailMessageRepository', () => {
+	describe('registerEmailMessage', () => {
+		let testDb: TestPg;
+		beforeAll(() => {
+			testDb = new TestPg('tenant');
 		});
-		expect(context?.issues).toHaveLength(defaultRequirements.length);
-		expect(context?.issues.every((issue) => issue.issueCode === 'MISSING')).toBe(true);
-		expect(context?.issues).toContainEqual(
-			expect.objectContaining({
-				requirementTypeId: i9RequirementTypeId,
-				requiresInPerson: true,
-				containsSensitiveInformation: true,
-				actionDueAt: new Date('2026-09-05T00:00:00.000Z'),
-			}),
-		);
-		expect(context?.issues).toContainEqual(
-			expect.objectContaining({
-				requirementTypeId: customFitTestRequirementTypeId,
-				textTemplate: 'Please submit your Annual <Fit> Test.',
-				htmlTemplate: null,
-			}),
-		);
-		expect(query).toHaveBeenCalledWith('SELECT * FROM api.get_context($1);', [employeeId]);
+		it('returns an email message id that can be used to retrieve the email message', async () => {
+			await testDb.withClient(async (client) => {
+				const employeeInfoRepo = new EmployeeInfoRepository(client);
+				await employeeInfoRepo.insertEmployeeRecord(employeeId, mockEmployee);
+				const preCheckResult = await client.query(
+					`
+                        SELECT * FROM public.outbound_emails oe
+                    `,
+					[],
+				);
+				expect(preCheckResult.rowCount).toStrictEqual(0);
+				const repo = new EmailMessageRepository(agency, client);
+				const result = await repo.registerEmailMessage(employeeId, emailMessage, messageTemplateCode);
+				const parsedResult = z.uuid().safeParse(result);
+				expect(parsedResult.success).toStrictEqual(true);
+				console.log(parsedResult.data);
+			});
+
+			// I expect result to be a uuid
+		});
+		describe('getEmailMessage', () => {
+			it('returns a valid resend configuration', async () => {
+				await testDb.withClient(async (client) => {
+					const res = await client.query(
+						`
+                        SELECT * FROM public.employees;
+                    `,
+						[],
+					);
+					console.log(res.rows);
+					const preCheckResult = await client.query(
+						`
+                        TRUNCATE public.outbound_emails CASCADE;
+                    `,
+						[],
+					);
+					expect(preCheckResult.rowCount).toStrictEqual(null);
+					const emailMessageRepo = new EmailMessageRepository(agency, client);
+					const result = await emailMessageRepo.registerEmailMessage(
+						employeeId,
+						emailMessage,
+						messageTemplateCode,
+					);
+					const parsedResult = z.uuid().safeParse(result);
+					expect(parsedResult.success).toStrictEqual(true);
+					const emailId = z.string().parse(parsedResult.data);
+
+					const tenantDomain = 'onboarding@myguardiancares.com';
+					const emailConfig = await emailMessageRepo.getEmailMessage(tenantDomain, employeeId, emailId);
+					expect(
+						z
+							.object({
+								to: z.email(),
+								from: z.email(),
+								subject: z.string().min(1),
+								html: z.string().min(1),
+								text: z.string(),
+							})
+							.parse(emailConfig),
+					).not.toThrow(ZodError);
+					expect(emailConfig.to).toStrictEqual(emailMessage.to);
+					expect(emailConfig.from).toStrictEqual(tenantDomain);
+					expect(emailConfig.html).toStrictEqual(emailMessage.html);
+					expect(emailConfig.text).toStrictEqual(emailMessage.text);
+					expect(emailConfig.subject).toStrictEqual(emailMessage.subject);
+					console.log(emailConfig);
+				});
+			});
+		});
+		afterAll(async () => {
+			await testDb.drop();
+		});
 	});
 });
