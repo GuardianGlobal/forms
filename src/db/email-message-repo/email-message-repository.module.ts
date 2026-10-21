@@ -8,7 +8,15 @@ import type {
 import type { CreateEmailOptions } from 'resend';
 
 export type EmailMessageTemplate = 'onboarding' | 'missing requirements';
-
+export type EmailOptions = {
+	to: string;
+	from: string;
+	subject: string;
+	text: string;
+	html: string;
+	replyTo: string;
+	emailId: string;
+};
 export type EmailContextRow = {
 	employeeId: string;
 	firstName: string;
@@ -96,10 +104,16 @@ export class EmailMessageRepository {
 		throw new Error('Method not implemented!');
 	};
 
-	getEmailMessage = async (tenantDomain: string, employeeId: string, emailId: string): Promise<CreateEmailOptions> => {
+	getEmailMessage = async (
+		tenantEmailPrefix: string,
+		tenantDomain: string,
+		employeeId: string,
+		emailId: string,
+		tenantReplyTo?: string,
+	): Promise<CreateEmailOptions> => {
 		const result = await this.client.query<{ message: CreateEmailOptions }>(
-			`SELECT api.get_email_message($1, $2, $3) AS "message"`,
-			[tenantDomain, employeeId, emailId],
+			`SELECT api.get_email_message($1, $2, $3, $4, $5) AS "message"`,
+			[tenantEmailPrefix, tenantDomain, tenantReplyTo, employeeId, emailId],
 		);
 		return result.rows[0].message;
 	};

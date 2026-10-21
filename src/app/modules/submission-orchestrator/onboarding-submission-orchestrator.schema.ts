@@ -109,3 +109,7 @@ export const employeeInfoSubmissionSchema = z.object({
 	zipCode: zipCodeSchema,
 });
 export type EmployeeInfoSubmission = z.output<typeof employeeInfoSubmissionSchema>;
+export interface Agency {
+	agencyId: string;
+	name: string;
+}

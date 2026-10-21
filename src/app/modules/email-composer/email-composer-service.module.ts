@@ -14,24 +14,19 @@ import type {
 import { randomUUID } from 'node:crypto';
 
 export class EmailComposerService {
-	constructor(private readonly context: EmailContext) {}
+	constructor() {}
 
-	public composeEmail = (employeeId: string): EmailMessage => {
+	public composeEmail = (employeeId: string, context: EmailContext): EmailMessage => {
 		const composition = this.createComposition();
-		return this.renderEmail(this.context, composition);
+		return this.renderEmail(context, composition);
 	};
 
 	public createComposition(): EmailComposition {
 		return c.composeEmail(
-			c.greeting(
-				c.employeeFirstName(),
-				c.when(c.hasExpiredDocuments(), 'urgent' as const, 'default' as const),
-			),
+			c.greeting(c.employeeFirstName(), c.when(c.hasExpiredDocuments(), 'urgent' as const, 'default' as const)),
 			c.summary('generic'),
 			c.issues('verbose'),
-			c.deadline(
-				c.when(c.hasSensitiveDocuments(), c.requireInPerson(), c.standardDeadline()),
-			),
+			c.deadline(c.when(c.hasSensitiveDocuments(), c.requireInPerson(), c.standardDeadline())),
 			c.signature(c.customClosing('With care and commitment,'), c.agencyName()),
 		);
 	}
@@ -104,15 +99,12 @@ export class EmailComposerService {
 				return `<li>${issue.htmlTemplate}</li>`;
 			}
 
-			const content =
-				section.detail === 'verbose' ? issue.textTemplate : issue.requirementDisplayName;
+			const content = section.detail === 'verbose' ? issue.textTemplate : issue.requirementDisplayName;
 			return `<li>${this.escapeHtml(content)}</li>`;
 		});
 
 		return {
-			text: ['Documents requiring attention:', ...textItems.map((item) => `- ${item}`)].join(
-				'\n',
-			),
+			text: ['Documents requiring attention:', ...textItems.map((item) => `- ${item}`)].join('\n'),
 			html: `<p>Documents requiring attention:</p>\n<ul>\n${htmlItems.join('\n')}\n</ul>`,
 		};
 	}
@@ -130,20 +122,12 @@ export class EmailComposerService {
 		const linkText = context.deadline
 			? `Click here to submit these documents by ${this.formatDate(context.deadline)}.`
 			: 'Click here to submit these documents.';
-		const actionText = canSubmitOnline
-			? `${linkText}\n${context.formCompletionUrl}`
-			: deadlineText;
-		const text =
-			strategy.type === 'in_person'
-				? `${actionText}\n\n${strategy.instructions}`
-				: actionText;
+		const actionText = canSubmitOnline ? `${linkText}\n${context.formCompletionUrl}` : deadlineText;
+		const text = strategy.type === 'in_person' ? `${actionText}\n\n${strategy.instructions}` : actionText;
 		const actionHtml = canSubmitOnline
 			? `<p><a href="${this.escapeHtml(context.formCompletionUrl)}">${this.escapeHtml(linkText)}</a></p>`
 			: `<p>${this.escapeHtml(deadlineText)}</p>`;
-		const instructionsHtml =
-			strategy.type === 'in_person'
-				? `\n<p>${this.escapeHtml(strategy.instructions)}</p>`
-				: '';
+		const instructionsHtml = strategy.type === 'in_person' ? `\n<p>${this.escapeHtml(strategy.instructions)}</p>` : '';
 
 		return {
 			text,
@@ -151,10 +135,7 @@ export class EmailComposerService {
 		};
 	}
 
-	private renderSignature(
-		section: SignatureSection,
-		context: EmailContext,
-	): RenderedEmailSection {
+	private renderSignature(section: SignatureSection, context: EmailContext): RenderedEmailSection {
 		const closing = c.resolveValue(section.closing, context);
 		const signer = c.resolveValue(section.signer, context);
 

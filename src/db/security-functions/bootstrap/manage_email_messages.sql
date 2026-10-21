@@ -75,7 +75,9 @@ END;
 $register_email_message$;
 
 CREATE OR REPLACE FUNCTION api.get_email_message(
-    p_tenant_onboarding_domain text,
+    p_tenant_email_prefix text,
+    p_tenant_domain text,
+    p_reply_to text,
     p_employee_id text,
     p_email_id uuid
 )
@@ -85,8 +87,11 @@ AS $get_email_message$
 DECLARE
     v_message jsonb;
 BEGIN
-    IF NULLIF (btrim(p_tenant_onboarding_domain), '') IS NULL THEN
-        RAISE EXCEPTION 'Sender address is required';
+    IF NULLIF (btrim(p_tenant_email_prefix), '') IS NULL THEN
+        RAISE EXCEPTION 'Sender email prefix is required';
+    END IF;
+    IF NULLIF (btrim(p_tenant_domain), '') IS NULL THEN
+        RAISE EXCEPTION 'Sender domain is required';
     END IF;
     IF NULLIF (btrim(p_employee_id), '') IS NULL THEN
         RAISE EXCEPTION 'Employee ID is required';
@@ -95,11 +100,18 @@ BEGIN
         RAISE EXCEPTION 'Email ID is required';
     END IF;
     SELECT jsonb_strip_nulls(jsonb_build_object(
-            'from', p_tenant_onboarding_domain,
+            'from', concat(p_tenant_email_prefix, p_tenant_domain),
             'to', oe.recipient_email,
             'subject', oe.rendered_subject,
             'text', oe.rendered_text,
-            'html', oe.rendered_html
+            'html', oe.rendered_html,
+            'replyTo', p_reply_to,
+            'tags', ARRAY[
+                json_build_object (
+                    'name', 'outbound_email_id',
+                    'value', p_email_id
+                )
+            ]
     ))
     INTO v_message
     FROM public.outbound_emails AS oe

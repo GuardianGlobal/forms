@@ -2,7 +2,7 @@ import { OnboardingSubmissionOrchestrator } from '#src/app/modules/submission-or
 import { EmployeeInfoRepository } from '#src/db/employee-info-repository.module.js';
 import { IdGeneratorService } from '#src/app/modules/id/id-generator-service.module.js';
 import { PoolClient } from 'pg';
-import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.js';
 
 export function createOnboardingOrchestrator(
 	databaseClient: PoolClient,

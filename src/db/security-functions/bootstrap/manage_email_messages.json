@@ -13,7 +13,7 @@
 			]
 		},
 		{
-			"signature": "api.get_email_message(text, text, uuid)",
+			"signature": "api.get_email_message(text, text, text, text, uuid)",
 			"domain": "general",
 			"expose": true,
 			"access": [

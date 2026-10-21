@@ -2,12 +2,7 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import { bullResolver } from '#src/bullmq/bull-resolver.js';
 import { BullQueueManager } from '#src/bullmq/modules/bull-queue-manager.module.js';
-import type {
-	BullMqs,
-	PgFlowProducer,
-	PgQueue,
-	PgWorker,
-} from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { BullMqs, PgFlowProducer, PgQueue, PgWorker } from '#src/bullmq/schema/bullmq-manager.js';
 
 function fixture() {
 	const worker = {} as PgWorker;
@@ -37,11 +32,7 @@ describe('bullResolver', () => {
 		expect(resolvedWorker).toBe(worker);
 		expect(resolvedQueue).toBe(queue);
 		expect(resolvedFlow).toBe(flow);
-		expect(deps[0].getWorker).toHaveBeenCalledExactlyOnceWith(
-			'guardian',
-			'onboarding',
-			processor,
-		);
+		expect(deps[0].getWorker).toHaveBeenCalledExactlyOnceWith('guardian', 'onboarding', processor);
 		expect(deps[1].getQueue).toHaveBeenCalledExactlyOnceWith('guardian', 'onboarding');
 		expect(deps[2].getFlowProducer).toHaveBeenCalledExactlyOnceWith('guardian');
 		expect(processor).not.toHaveBeenCalled();
@@ -86,12 +77,9 @@ describe('bullResolver', () => {
 		expect(deps[2].getFlowProducer).not.toHaveBeenCalled();
 	});
 
-	it.each([null, [], [{}, {}, {}], [null, null, null]])(
-		'rejects malformed manager tuples: %j',
-		(deps) => {
-			expect(() => callUnchecked(deps, 'guardian', 'QUEUE', 'onboarding')).toThrow(ZodError);
-		},
-	);
+	it.each([null, [], [{}, {}, {}], [null, null, null]])('rejects malformed manager tuples: %j', (deps) => {
+		expect(() => callUnchecked(deps, 'guardian', 'QUEUE', 'onboarding')).toThrow(ZodError);
+	});
 
 	it('rejects swapped managers and extra tuple entries', () => {
 		const { deps } = fixture();
@@ -99,9 +87,7 @@ describe('bullResolver', () => {
 			[deps[1], deps[0], deps[2]],
 			[...deps, deps[0]],
 		]) {
-			expect(() => callUnchecked(invalid, 'guardian', 'QUEUE', 'onboarding')).toThrow(
-				ZodError,
-			);
+			expect(() => callUnchecked(invalid, 'guardian', 'QUEUE', 'onboarding')).toThrow(ZodError);
 		}
 	});
 

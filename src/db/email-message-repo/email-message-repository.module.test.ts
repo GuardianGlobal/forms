@@ -11,6 +11,7 @@ import { TestPg } from '#src/util/test-pg.js';
 import { EmailMessage } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 import { EmployeeInfoSubmission } from '#src/app/modules/submission-orchestrator/onboarding-submission-orchestrator.schema.js';
 import { EmployeeInfoRepository } from '../employee-info-repository.module.js';
+import { getTenantDomain } from '#src/util/get-tenant-domain.js';
 
 const mockEmployee: EmployeeInfoSubmission = {
 	operationId: 'f4b9a2d7-8c31-4e65-a092-6d0b3f17c8eb',
@@ -73,8 +74,6 @@ describe('EmailMessageRepository', () => {
 				expect(parsedResult.success).toStrictEqual(true);
 				console.log(parsedResult.data);
 			});
-
-			// I expect result to be a uuid
 		});
 		describe('getEmailMessage', () => {
 			it('returns a valid resend configuration', async () => {
@@ -102,9 +101,17 @@ describe('EmailMessageRepository', () => {
 					const parsedResult = z.uuid().safeParse(result);
 					expect(parsedResult.success).toStrictEqual(true);
 					const emailId = z.string().parse(parsedResult.data);
-
-					const tenantDomain = 'onboarding@myguardiancares.com';
-					const emailConfig = await emailMessageRepo.getEmailMessage(tenantDomain, employeeId, emailId);
+					const onboardingEmailPrefix = z.string().parse(process.env.ONBOARDING);
+					const tenantDomain = await getTenantDomain('guardian');
+					console.log(tenantDomain);
+					const emailConfig = await emailMessageRepo.getEmailMessage(
+						onboardingEmailPrefix,
+						tenantDomain.domain,
+						employeeId,
+						emailId,
+						tenantDomain.replyTo,
+					);
+					const fromAddress = onboardingEmailPrefix + tenantDomain.domain;
 					expect(
 						z
 							.object({
@@ -113,14 +120,29 @@ describe('EmailMessageRepository', () => {
 								subject: z.string().min(1),
 								html: z.string().min(1),
 								text: z.string(),
+								replyTo: z.email(),
+								tags: z.array(
+									z.object({
+										name: z.string(),
+										value: z.string(),
+									}),
+								),
 							})
 							.parse(emailConfig),
 					).not.toThrow(ZodError);
+
 					expect(emailConfig.to).toStrictEqual(emailMessage.to);
-					expect(emailConfig.from).toStrictEqual(tenantDomain);
+					expect(emailConfig.from).toStrictEqual(fromAddress);
 					expect(emailConfig.html).toStrictEqual(emailMessage.html);
 					expect(emailConfig.text).toStrictEqual(emailMessage.text);
 					expect(emailConfig.subject).toStrictEqual(emailMessage.subject);
+					expect(emailConfig.replyTo).toStrictEqual(tenantDomain.replyTo);
+					expect(emailConfig.tags).toMatchObject([
+						{
+							name: 'outbound_email_id',
+							value: emailId,
+						},
+					]);
 					console.log(emailConfig);
 				});
 			});

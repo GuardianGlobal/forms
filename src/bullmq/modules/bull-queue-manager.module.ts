@@ -1,5 +1,5 @@
-import type { PgQueue } from '#src/bullmq/schema/bullmq-manager.schema.js';
-import type { BullMQQueueManager } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { PgQueue } from '#src/bullmq/schema/bullmq-manager.js';
+import type { BullMQQueueManager } from '#src/bullmq/schema/bullmq-manager.js';
 import { getPgConnection } from '#src/bullmq/get-pg-connection.js';
 import { createPostgresBackend, Queue } from 'bullmq';
 

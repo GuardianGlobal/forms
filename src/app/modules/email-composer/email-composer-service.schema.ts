@@ -1,46 +1,56 @@
+import { z } from 'zod';
+import { employeeIdSchema } from '../id/id-generator-service.schema.js';
+
 export type RequirementIssueCode = 'MISSING' | 'UNREADABLE' | 'INVALID' | 'EXPIRING' | 'EXPIRED';
+export const requirementIssueCodeSchema = z.enum(['MISSING', 'UNREADABLE', 'INVALID', 'EXPIRING', 'EXPIRED']);
+export const dateOrNullSchema = z.union([z.date(), z.null()]);
+export const stringOrNullSchema = z.union([z.string(), z.null()]);
+export const requirementIssueSchema = z.object({
+	issueId: z.string(),
+	issueCode: requirementIssueCodeSchema,
+	requirementTypeId: z.string(),
+	requirementDisplayName: z.string(),
+	textTemplate: z.string(),
+	htmlTemplate: stringOrNullSchema,
+	expiresOn: dateOrNullSchema,
+	actionDueAt: dateOrNullSchema,
+	requiresInPerson: z.boolean(),
+	containsSensitiveInformation: z.boolean(),
+});
+export type RequirementIssue = z.infer<typeof requirementIssueSchema>;
+export const requirementIssuesSchema = z.array(requirementIssueSchema);
+export const contextEmployeeSchema = z.object({
+	employeeId: employeeIdSchema,
+	firstName: z.string(),
+	email: z.email(),
+});
+export const agencySchema = z.object({
+	agencyId: z.string(),
+	name: z.string(),
+});
 
-export interface RequirementIssue {
-	issueId: string;
-	issueCode: RequirementIssueCode;
-	requirementTypeId: string;
-	requirementDisplayName: string;
-	textTemplate: string;
-	htmlTemplate: string | null;
-	expiresOn: Date | null;
-	actionDueAt: Date | null;
-	requiresInPerson: boolean;
-	containsSensitiveInformation: boolean;
-}
+export const onboardingUrlRegex =
+	/^https:\/\/onboarding\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}\/forms\?id=[0-9]{11}$/i;
+export const formCompletionUrlSchema = z.string().regex(onboardingUrlRegex);
 
-export interface EmailContext {
-	employee: {
-		employeeId: string;
-		firstName: string;
-		email: string;
-	};
-	agency: {
-		agencyId: string;
-		name: string;
-	};
-	issues: RequirementIssue[];
-	deadline: Date | null;
-	formCompletionUrl: string;
-}
+export const EmailContextSchema = z.object({
+	employee: contextEmployeeSchema,
+	agency: agencySchema,
+	issues: requirementIssuesSchema,
+	deadline: dateOrNullSchema,
+	formCompletionUrl: formCompletionUrlSchema,
+});
 
-export type ValueExpression<T> =
-	| { type: 'constant'; value: T }
-	| { type: 'resolver'; resolve(context: EmailContext): T };
+export type EmailContext = z.infer<typeof EmailContextSchema>;
+
+export type ValueExpression<T> = { type: 'constant'; value: T } | { type: 'resolver'; resolve(context: EmailContext): T };
 
 export type Predicate = (context: EmailContext) => boolean;
 export type EmailTone = 'default' | 'urgent';
 export type SummaryVariant = 'generic' | 'detailed';
 export type IssueDetail = 'concise' | 'verbose';
 
-export type DeadlineStrategy =
-	| { type: 'standard' }
-	| { type: 'in_person'; instructions: string }
-	| { type: 'none' };
+export type DeadlineStrategy = { type: 'standard' } | { type: 'in_person'; instructions: string } | { type: 'none' };
 
 export interface GreetingSection {
 	type: 'greeting';
@@ -69,12 +79,7 @@ export interface SignatureSection {
 	signer: ValueExpression<string>;
 }
 
-export type EmailSection =
-	| GreetingSection
-	| SummarySection
-	| IssuesSection
-	| DeadlineSection
-	| SignatureSection;
+export type EmailSection = GreetingSection | SummarySection | IssuesSection | DeadlineSection | SignatureSection;
 
 export interface EmailComposition {
 	readonly sections: readonly EmailSection[];

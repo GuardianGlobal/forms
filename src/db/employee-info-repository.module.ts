@@ -4,7 +4,7 @@ import type { EncryptedSsnRow, SensitiveInfo } from '#src/app/modules/id/id-gene
 import type { EmailContext, RequirementIssueCode } from '#src/app/modules/email-composer/email-composer-service.schema.js';
 import { decryptSsn } from '#src/util/encrypt-ssn.js';
 import { formatSensitiveData } from '#src/util/format-sensitive-data.js';
-import { getTenantOnboardingDomain } from '#src/util/get-tenant-onboarding-domain.js';
+import { getTenantDomain } from '#src/util/get-tenant-domain.js';
 
 export interface EmployeeRequirementsInitConfig {
 	agencyId: string;
@@ -101,7 +101,7 @@ export class EmployeeInfoRepository {
 				containsSensitiveInformation: row.containsSensitiveInformation,
 			};
 		});
-		const tenantDomain = await getTenantOnboardingDomain(config.agencyId);
+		const tenantDomain = await getTenantDomain(config.agencyId);
 		return {
 			employee: {
 				employeeId: firstRow.employeeId,
@@ -114,7 +114,7 @@ export class EmployeeInfoRepository {
 			},
 			issues,
 			deadline: firstRow.deadline,
-			formCompletionUrl: `https://${tenantDomain}/forms?id=${config.employeeId}`,
+			formCompletionUrl: `https://onboarding.${tenantDomain}/forms?id=${config.employeeId}`,
 		};
 	}
 }

@@ -1,5 +1,5 @@
-import type { PgFlowProducer } from '#src/bullmq/schema/bullmq-manager.schema.js';
-import type { BullMQFlowManager } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { PgFlowProducer } from '#src/bullmq/schema/bullmq-manager.js';
+import type { BullMQFlowManager } from '#src/bullmq/schema/bullmq-manager.js';
 import { getPgConnection } from '#src/bullmq/get-pg-connection.js';
 import { createPostgresBackend, FlowProducer } from 'bullmq';
 

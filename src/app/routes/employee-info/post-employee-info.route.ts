@@ -11,16 +11,16 @@ export const postEmployeeInfo = async (request: Request, response: Response) => 
 	const employee = employeeInfoSubmissionSchema.parse(request.body);
 	const agencyId = employee.agencyId;
 	// sensitive db
-	await clientPoolManager.withClient(agencyId, async (pgClient: PoolClient) => {
+	const id = await clientPoolManager.withClient(agencyId, async (pgClient: PoolClient) => {
 		//orchestration
 		const orchestrator = createOnboardingOrchestrator(pgClient, [
 			bullWorkerManager,
 			bullQueueManager,
 			bullFlowManager,
 		] as const);
-		await orchestrator.handleSubmission(employee, pgClient);
+		return await orchestrator.handleSubmission(employee);
 	});
 	//success
 	response.writeHead(201);
-	response.end('Accepted');
+	response.end(`Accepted! Employee ID: ${id}`);
 };

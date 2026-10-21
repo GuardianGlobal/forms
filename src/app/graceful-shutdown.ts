@@ -1,5 +1,5 @@
 import { ClientPoolManager } from '#src/db/client-pool-manager.module.js';
-import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.schema.js';
+import type { BullMqs } from '#src/bullmq/schema/bullmq-manager.js';
 import type { Server } from 'node:http';
 
 type PoolManager = Pick<ClientPoolManager, 'endAll'>;
